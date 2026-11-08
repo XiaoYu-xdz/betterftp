@@ -1,0 +1,16 @@
+appId: cn.school.betterftp
+productName: BetterFTP
+directories:
+  output: release
+files:
+  - out/**/*
+  - package.json
+asar: true
+win:
+  target:
+    - target: portable
+      arch:
+        - x64
+  requestedExecutionLevel: asInvoker
+portable:
+  artifactName: BetterFTP-Portable-${version}.exe
