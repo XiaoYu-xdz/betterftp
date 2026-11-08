@@ -1,5 +1,6 @@
 import React from 'react'
 import { T } from '../texts.js'
+import logoUrl from '../assets/logo.png'
 
 /**
  * 「关于」页（主界面内嵌页，非弹窗）。
@@ -16,7 +17,7 @@ export function AboutPage({ version, onBack }) {
 
       <div className="card">
         <div className="about-head">
-          <div className="about-logo">⇅</div>
+          <div className="about-logo"><img className="logo-img" src={logoUrl} alt="" draggable={false} /></div>
           <div>
             <div className="about-name">{T.side.title}</div>
             <div className="about-ver">{A.version(version)}</div>
