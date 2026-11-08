@@ -20,6 +20,7 @@ export function AboutPage({ version, onBack }) {
           <div>
             <div className="about-name">{T.side.title}</div>
             <div className="about-ver">{A.version(version)}</div>
+          {A.github && <a className="about-link" href={A.github} target="_blank" rel="noreferrer">{A.github.replace('https://', '')}</a>}
           </div>
         </div>
         <h3 style={{ marginTop: 14 }}>{A.introTitle}</h3>
@@ -31,12 +32,14 @@ export function AboutPage({ version, onBack }) {
       <div className="card">
         <h3>{A.featuresTitle}</h3>
         <div className="about-features">
-          {A.features.map((f, i) => (
-            <div key={i} className="about-feature">
-              <div className="t">✦ {f.t}</div>
-              <div className="d">{f.d}</div>
-            </div>
-          ))}
+          {A.features.map((f, i) => typeof f === 'string'
+            ? <div key={i} className="about-feature-str">{f}</div>
+            : (
+              <div key={i} className="about-feature">
+                <div className="t">✦ {f.t}</div>
+                <div className="d">{f.d}</div>
+              </div>
+            ))}
         </div>
       </div>
 

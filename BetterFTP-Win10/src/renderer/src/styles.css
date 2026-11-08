@@ -130,11 +130,14 @@ input, select, textarea { font-family: inherit; }
 .about-logo { width: 38px; height: 38px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 19px; }
 .about-name { font-weight: 700; font-size: 17px; }
 .about-ver { color: var(--text-3); font-size: 12.5px; }
+.about-link { color: var(--accent); font-size: 12.5px; text-decoration: none; }
+.about-link:hover { text-decoration: underline; }
 .about-p { color: var(--text-2); font-size: 13.5px; line-height: 1.9; margin-bottom: 4px; }
 .about-features { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
 .about-feature { border: 1px solid var(--border); background: #fdfdfd; padding: 10px 12px; }
 .about-feature .t { font-weight: 600; font-size: 13.5px; margin-bottom: 3px; }
 .about-feature .d { color: var(--text-3); font-size: 12.5px; line-height: 1.6; }
+.about-feature-str { border: 1px solid var(--border); background: #fdfdfd; padding: 10px 12px; font-weight: 600; font-size: 13.5px; align-self: start; }
 .about-line { font-size: 13.5px; margin-bottom: 4px; }
 .about-copyright { text-align: center; color: var(--text-3); font-size: 12.5px; padding: 18px 0 4px; }
 

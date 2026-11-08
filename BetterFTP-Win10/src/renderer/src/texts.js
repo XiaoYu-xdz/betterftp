@@ -46,7 +46,7 @@ export const T = {
     ro: { text: '只读', cls: 'warn', tip: '此文件夹只能查看和下载，不能上传/修改' },
     w: { text: '只写', cls: 'warn', tip: '此文件夹只能上传，不能查看内容' },
     none: { text: '受限', cls: 'bad', tip: '此文件夹无法读取也无法写入' },
-    unknown: { text: '未检测', cls: 'muted', tip: '暂未能确定权限，操作失败时会给出具体提示' },
+    unknown: { text: '未检测', cls: 'muted', tip: '暂未确定权限，操作失败时会给出提示' },
   },
 
   // ── 文件列表 ──────────────────────────────────────────
@@ -63,7 +63,7 @@ export const T = {
     dirNoDownload: '文件夹请进入后下载其中的文件',
     noPerm: '当前文件夹权限不足',
     rowTipDir: '单击选择，双击进入',
-    rowTipFile: '单击选择，双击打开（先下载到桌面）',
+    rowTipFile: '单击选择，双击打开（将会下载到桌面）',
   },
 
   // ── 操作按钮行 ────────────────────────────────────────
@@ -72,7 +72,7 @@ export const T = {
     download: '下载',
     mkdir: '新建文件夹',
     selected: (n) => `已选 ${n} 项`,
-    hint: '单击选择，双击打开/进入；操作按钮在文件行右侧',
+    hint: '单击选择，双击打开/进入',
   },
 
   // ── 空状态 ────────────────────────────────────────────
@@ -86,13 +86,13 @@ export const T = {
     connecting: '正在连接…',
     connErrorTitle: '连接出现问题',
     retry: '重试连接',
-    goSettings: '去设置检查',
-    dropboxTitle: '只写目录（投递箱）',
-    dropboxHint: '这个文件夹只允许上传，内容不可查看。点下方「上传文件」即可投递课件。',
+    goSettings: '打开设置',
+    dropboxTitle: '只写目录',
+    dropboxHint: '此文件夹只允许上传，内容不可查看。点下方「上传文件」即可投递课件。',
     dirEmpty: '此文件夹是空的',
-    dirEmptyHint: '点下方「上传文件」把课件传上来',
+    dirEmptyHint: '点「上传文件」上传文件',
     noSearchMatch: (kw) => `没有匹配「${kw}」的文件`,
-    noSearchMatchHint: '换个关键词试试',
+    noSearchMatchHint: '请再次尝试',
   },
 
   // ── 传输队列 ──────────────────────────────────────────
@@ -102,7 +102,7 @@ export const T = {
     pending: (n) => `等待 ${n}`,
     failed: (n) => `失败 ${n}`,
     none: '暂无进行中的任务',
-    emptyHint: '没有传输任务。上传或下载的文件会显示在这里，切换页面不会中断。',
+    emptyHint: '没有传输任务。',
     queued: '排队等待中…',
     cancel: '取消',
     cancelTitle: '取消传输',
@@ -134,7 +134,7 @@ export const T = {
     optOverwrite: '覆盖',
     optOverwriteDesc: (oldDesc) => `用新的文件替换已有的${oldDesc}`,
     optRename: '重命名保留两者',
-    optRenameDesc: '自动加编号（如「课件 (1).pptx」），两个都保留',
+    optRenameDesc: '自动加编号，两个都保留',
     optSkip: '跳过',
     optSkipDesc: (oldDesc) => `保留${oldDesc}，不传输这一个`,
     errorTitle: '遇到问题',
@@ -219,7 +219,7 @@ export const T = {
     addrBad: '地址格式不对',
     serverSection: 'FTP 服务器',
     host: '服务器地址',
-    hostPh: '只填 IP，如 10.180.168.3（不带 ftp:// 和端口）',
+    hostPh: '填 IP，（不带 ftp:// 和端口）',
     port: '端口',
     encoding: '默认编码',
     encAuto: '自动检测（推荐）',
@@ -236,7 +236,7 @@ export const T = {
     pick: '选择…',
     resetDesktop: '恢复桌面',
     autoStart: '开机自动启动',
-    autoStartHint: '开机后应用在后台就绪，双击桌面图标立即打开（推荐教室电脑开启）。此开关仅对打包版有效。',
+    autoStartHint: '开机后应用在后台就绪，双击桌面图标立即打开（推荐开启）。此开关仅对打包版有效。',
     save: '保存全局设置',
     savedToast: '全局设置已保存',
     backupSection: '配置备份',
@@ -251,7 +251,7 @@ export const T = {
     dataHint: '💡 本程序把配置保存在自己旁边的 data 文件夹里（便携模式）。班级电脑若 C 盘有冰点还原/还原卡，请把整个程序文件夹放到 D 盘，这样重启后账号配置不会丢失。换电脑时用「导出/导入配置备份」迁移。',
     errHostEmpty: '服务器地址填写有误',
     errPort: '端口不正确',
-    errPortHint: '端口应为 1–65535 的数字，FTP 默认 21。本机测试服务器用 2121。',
+    errPortHint: '端口应为 1–65535 的数字，FTP 默认 21。',
     errTimeout: '超时时间不正确',
     errTimeoutHint: '超时时间应为 3–300 秒之间的数字。',
     importFailed: '导入失败',
@@ -329,16 +329,16 @@ export const T = {
   about: {
     title: '关于 BetterFTP',
     version: (v) => `版本 ${v || '1.0.0'}`,
-    introTitle: '这是什么',
+    introTitle: 'What is Betterftp ?',
     intro: [
-      'BetterFTP 是为老师设计的校园 FTP 课件传输工具：点一下自己的账号，程序自动完成连接、登录并进入对应的课件文件夹，上传下载像本地操作一样简单。',
-      '程序为绿色便携版：不写注册表、不需要管理员权限，放在 D 盘等非还原盘即可在重启后保留配置。',
+      'BetterFTP 是为老师设计的校园 FTP 课件传输工具：点击自己的账号，将会自动完成连接、登录并进入对应的课件文件夹，上传下载如本地操作一般简单。',
+      '程序为便携版：不写注册表、不需要管理员权限，放在 D 盘等非还原盘即可在重启后保留配置。',
     ],
-    featuresTitle: '亮点',
+    featuresTitle: 'Features:',
     features: [
       { t: '账号一键切换', d: '每位老师一张卡片，点击即连接，无需记忆地址与密码' },
-      { t: '自研 FTP 协议层', d: '针对校园网定制：GBK/UTF-8 中文文件名自动识别、断点续传、防火墙拦截识别与切换建议' },
-      { t: '人人能读懂的错误提示', d: '认证失败、端口不通、权限不足……每条提示都附带下一步怎么做的建议' },
+      { t: '自研 FTP 协议层', d: '针对校园网定制：GBK/UTF-8 中文文件名自动识别、断点续传、防火墙拦截识别与切换建议。类似于FluentFTP库' },
+      { t: '完整错误提示', d: '认证失败、端口不通、权限不足……每条提示都附带下一步怎么做的建议' },
       { t: '权限感知', d: '自动识别只读/读写/只写文件夹，不可用的操作自动置灰' },
       { t: '传输不中断', d: '切换页面、切换账号都不影响进行中的上传下载，失败可断点续传' },
     ],
@@ -347,7 +347,9 @@ export const T = {
       '本程序免费供本校教学使用，可自由复制到校内电脑。',
       '程序以"现状"提供，使用本程序产生的文件丢失、传输异常等后果由使用者自行承担；重要课件请自行留底。',
       '请勿将本程序或包含账号密码的配置备份外传。',
+      '制作者:XiaoYu',
     ],
+    github: 'https://github.com/XiaoYu-xdz/betterftp',   // ← 关于页的 GitHub 直达链接
     copyright: '© 2026 BetterFTP · 校内教学工具',
     school: '',      // ← 填学校名，如 'XX中学'，填了才显示
     contact: '',     // ← 填维护人联系方式，如 '张老师 137xxxx'
