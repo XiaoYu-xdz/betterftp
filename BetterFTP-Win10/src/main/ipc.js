@@ -7,6 +7,7 @@ import { OperationLogger } from './store/logger.js'
 import { FtpOpError } from './ftp/errors.js'
 import { FtpSession } from './ftp/client.js'
 import { dedupeName } from './ftp/paths-util.js'
+import { FOLDER_ICON_DATA_URL, GENERIC_FILE_ICON_DATA_URL } from './icon-assets.js'
 import { ERR_TEXTS as E } from './texts.js'
 
 /**
@@ -330,15 +331,14 @@ export function registerIpc(ctx) {
         const i = String(f.name || '').lastIndexOf('.')
         return i > 0 ? f.name.slice(i + 1).toLowerCase().replace(/[^\w]/g, '') : '__file__'
       })()
-      if (!key || iconCache.has(key)) {
-        if (iconCache.has(key)) out[key] = iconCache.get(key)
-        continue
-      }
-      const rep = f.isDir
-        ? 'C:\\Windows'
-        : (key === '__file__' ? 'C:\\Windows\\System32\\drivers\\etc\\hosts' : `C:\\BetterFTP\\icon.${key}`)
+      // 文件夹与无扩展名文件：getFileIcon 对无扩展名路径错误返回"此电脑"图标，
+      // 改用启动时从系统提取并内嵌的原生图标（folder-icon / generic-file）
+      if (f.isDir) { out.__dir__ = FOLDER_ICON_DATA_URL; continue }
+      if (key === '__file__') { out.__file__ = GENERIC_FILE_ICON_DATA_URL; continue }
+      if (iconCache.has(key)) { out[key] = iconCache.get(key); continue }
+      const rep = `C:\\BetterFTP\\icon.${key}`
       jobs.push(
-        getIconDataUrl(rep, f.isDir || key === '__file__' ? null : key).then((url) => {
+        getIconDataUrl(rep, key).then((url) => {
           if (url) { iconCache.set(key, url); out[key] = url }
         })
       )

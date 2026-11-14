@@ -35,7 +35,7 @@ export const T = {
     parentTitle: '返回上一级',
     refresh: '刷新',
     refreshTitle: '刷新当前文件夹',
-    searchPlaceholder: '在当前文件夹搜索…',
+    searchPlaceholder: '在当前文件夹搜索',
     rootCrumb: '根目录',
     gbkBadge: 'GBK 编码',
   },

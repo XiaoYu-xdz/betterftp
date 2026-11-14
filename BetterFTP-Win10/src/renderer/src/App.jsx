@@ -449,7 +449,6 @@ export default function App() {
           <div className="topbar">
             <div className="topbar-row">
               <div className="who">
-                <span style={{ color: activeAccount?.color }}>●</span>
                 <span className="who-name">{activeAccount ? activeAccount.displayName : T.top.unselected}</span>
                 <span className="conn">
                   {connected && T.top.connected}
@@ -478,7 +477,7 @@ export default function App() {
               </div>
             </div>
             <div className="topbar-row path-row">
-              <button className="btn icon" disabled={!connected} onClick={goParent} title={T.top.parentTitle}>↑</button>
+              <button className="btn icon" disabled={!connected} onClick={goParent} title={T.top.parentTitle}>←</button>
               <button className="btn icon" disabled={!connected} onClick={() => refreshConn(activeId)} title={T.top.refreshTitle}>⟳</button>
               {listable && (
                 <div className="crumb-box">
