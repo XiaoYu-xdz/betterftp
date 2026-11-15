@@ -1,4 +1,4 @@
-import { ipcMain, dialog, shell, app, BrowserWindow } from 'electron'
+import { ipcMain, dialog, shell, app, BrowserWindow, screen } from 'electron'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -8,6 +8,7 @@ import { FtpOpError } from './ftp/errors.js'
 import { FtpSession } from './ftp/client.js'
 import { dedupeName } from './ftp/paths-util.js'
 import { ERR_TEXTS as E } from './texts.js'
+import { MIN_WINDOW, clampWindowSize } from './window-size.js'
 
 /**
  * IPC 注册：所有 handler 统一包装为 {ok, data|error}；
@@ -69,6 +70,34 @@ export function registerIpc(ctx) {
       path: app.getPath('exe')
     })
     return { enabled: app.getLoginItemSettings({ args: AUTO_ARGS }).openAtLogin, supported: true }
+  })
+
+  // ---------- 窗口尺寸 ----------
+  register('window:info', () => {
+    const wa = screen.getPrimaryDisplay().workAreaSize
+    const win = ctx.getWindow()
+    const b = win?.getNormalBounds?.()
+    return {
+      width: b?.width || 0,
+      height: b?.height || 0,
+      maximized: !!win?.isMaximized?.(),
+      workArea: { width: wa.width, height: wa.height },
+      min: MIN_WINDOW
+    }
+  })
+
+  register('window:applySize', ({ width, height }) => {
+    const win = ctx.getWindow()
+    if (!win) throw new Error('窗口不存在')
+    const wa = screen.getPrimaryDisplay().workAreaSize
+    const size = clampWindowSize({ width, height }, wa)
+    if (win.isMaximized()) win.unmaximize()
+    win.setSize(size.width, size.height)
+    win.center()
+    const cfg = getCfg()
+    cfg.global.window = { width: size.width, height: size.height, maximized: false }
+    persist()
+    return size
   })
 
   // ---------- 文案覆盖（data\文案覆盖.json） ----------

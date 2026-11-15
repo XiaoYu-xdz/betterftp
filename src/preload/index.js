@@ -28,6 +28,10 @@ const api = {
   getLoginItem: invoke('app:getLoginItem'),
   setLoginItem: invoke('app:setLoginItem'),
 
+  // 窗口尺寸
+  windowInfo: invoke('window:info'),
+  applyWindowSize: invoke('window:applySize'),
+
   // 配置
   configGet: invoke('config:get'),
   saveGlobal: invoke('config:saveGlobal'),

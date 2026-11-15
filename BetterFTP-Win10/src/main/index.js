@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, shell } from 'electron'
+import { app, BrowserWindow, Menu, shell, screen } from 'electron'
 import path from 'node:path'
 import fs from 'node:fs'
 import { resolveDataDir } from './paths.js'
@@ -7,9 +7,12 @@ import { OperationLogger } from './store/logger.js'
 import { FtpSession } from './ftp/client.js'
 import { TransferEngine } from './ftp/transfer-engine.js'
 import { registerIpc, broadcast } from './ipc.js'
+import { resolveWindowSize, MIN_WINDOW } from './window-size.js'
 import { applyMainTextsOverride } from './texts.js'
 
 const isSmoke = process.argv.includes('--smoke')
+// 开机自启时带 --hidden：窗口先隐藏在后台，用户点图标时由单实例聚焦秒开
+const isHiddenStart = process.argv.includes('--hidden')
 // 资源定位：dev = 项目根（out/ 的上一级）；打包 = app.asar。
 // electron-vite 输出 CJS，__dirname 在运行时可用（不能用 import.meta.url）。
 const appRoot = () => (app.isPackaged ? app.getAppPath() : path.resolve(__dirname, '../..'))
@@ -64,12 +67,17 @@ function resolveDownloadDir() {
 }
 
 function createWindow() {
+  // 按当前屏幕可用区域（已含缩放换算）适配尺寸；教室希沃大屏常见 1366x768 / 高缩放
+  const { width: winW, height: winH, maximize } = resolveWindowSize(
+    cfg.global.window,
+    screen.getPrimaryDisplay().workAreaSize
+  )
   mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 820,
-    minWidth: 1024,
-    minHeight: 660,
-    show: !isSmoke,
+    width: winW,
+    height: winH,
+    minWidth: MIN_WINDOW.width,
+    minHeight: MIN_WINDOW.height,
+    show: !isSmoke && !isHiddenStart,
     backgroundColor: '#f5f7fa',
     autoHideMenuBar: true,
     webPreferences: {
@@ -85,6 +93,18 @@ function createWindow() {
     if (/^https?:/i.test(url)) shell.openExternal(url)
     return { action: 'deny' }
   })
+  if (maximize && !isSmoke) mainWindow.maximize()
+
+  // 关闭时记住窗口状态（普通尺寸 + 是否最大化），下次启动恢复
+  const saveWindowState = () => {
+    try {
+      if (!mainWindow || mainWindow.isDestroyed()) return
+      const b = mainWindow.getNormalBounds()
+      cfg.global.window = { width: b.width, height: b.height, maximized: mainWindow.isMaximized() }
+      persist()
+    } catch { /* 保存失败不影响退出 */ }
+  }
+  mainWindow.on('close', saveWindowState)
   mainWindow.on('closed', () => { mainWindow = null })
 
   if (!app.isPackaged && process.env.ELECTRON_RENDERER_URL) {
@@ -102,6 +122,7 @@ if (!singleLock) {
   app.on('second-instance', () => {
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.show() // 自启隐藏模式下，第二次启动=把后台窗口调到前台（秒开）
       mainWindow.focus()
     }
   })

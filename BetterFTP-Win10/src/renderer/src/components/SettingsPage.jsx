@@ -87,6 +87,26 @@ function GlobalTab({ globalCfg, paths, accounts, onSaved, onAccountsChanged, sho
     })
   }, [globalCfg])
 
+  // ---------- 窗口大小 ----------
+  const [winInfo, setWinInfo] = useState(null)
+  const [winW, setWinW] = useState(1280)
+  const [winH, setWinH] = useState(820)
+  useEffect(() => {
+    api().windowInfo().then((info) => {
+      setWinInfo(info)
+      setWinW(info.width || 1280)
+      setWinH(info.height || 820)
+    }).catch(() => { /* 窗口信息不可用时隐藏卡片 */ })
+  }, [])
+  const applyWindow = async () => {
+    try {
+      const r = await api().applyWindowSize({ width: winW, height: winH })
+      setWinW(r.width)
+      setWinH(r.height)
+      showToast(T.settings.windowApplied)
+    } catch (e) { showError(e) }
+  }
+
   const save = async () => {
     const port = Number(form.port)
     const sec = Number(form.timeoutSec)
@@ -193,6 +213,44 @@ function GlobalTab({ globalCfg, paths, accounts, onSaved, onAccountsChanged, sho
           <button className="btn primary" onClick={save}>{T.settings.save}</button>
         </div>
       </div>
+
+      {winInfo && (
+        <div className="card">
+          <h3>{T.settings.windowSection}</h3>
+          <div className="form-grid">
+            <label>{T.settings.windowWidth}</label>
+            <div className="inline-row">
+              <input
+                type="range"
+                className="slider"
+                min={winInfo.min.width}
+                max={Math.max(winInfo.workArea.width, winInfo.min.width)}
+                step={10}
+                value={winW}
+                onChange={(e) => setWinW(Number(e.target.value))}
+              />
+              <span className="slider-val">{winW} px</span>
+            </div>
+            <label>{T.settings.windowHeight}</label>
+            <div className="inline-row">
+              <input
+                type="range"
+                className="slider"
+                min={winInfo.min.height}
+                max={Math.max(winInfo.workArea.height, winInfo.min.height)}
+                step={10}
+                value={winH}
+                onChange={(e) => setWinH(Number(e.target.value))}
+              />
+              <span className="slider-val">{winH} px</span>
+            </div>
+            <div className="full hint-text">{T.settings.windowHint(winInfo.workArea, winInfo.min)}</div>
+          </div>
+          <div style={{ marginTop: 12 }}>
+            <button className="btn" onClick={applyWindow}>{T.settings.windowApply}</button>
+          </div>
+        </div>
+      )}
 
       <div className="card">
         <h3>{T.settings.backupSection}</h3>

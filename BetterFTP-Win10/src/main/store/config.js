@@ -48,7 +48,8 @@ export function defaultConfig() {
       timeoutMs: 30000,
       passive: true,
       maxConcurrentTransfers: 2,
-      downloadDir: 'desktop'       // 'desktop' 或绝对路径
+      downloadDir: 'desktop',      // 'desktop' 或绝对路径
+      window: { width: null, height: null, maximized: false } // 上次窗口状态（null=自动适配屏幕）
     },
     accounts: []
   }
@@ -108,6 +109,15 @@ export function migrate(cfg) {
     if (Number.isInteger(maybePort) && maybePort > 0 && maybePort <= 65535) {
       out.global.server.host = out.global.server.host.slice(0, colon)
       out.global.server.port = maybePort
+    }
+  }
+  // 窗口状态：宽高必须是正数或 null（自动适配屏幕），maximized 布尔
+  {
+    const w = cfg.global?.window || {}
+    out.global.window = {
+      width: Number.isFinite(w.width) && w.width > 0 ? Math.round(w.width) : null,
+      height: Number.isFinite(w.height) && w.height > 0 ? Math.round(w.height) : null,
+      maximized: w.maximized === true
     }
   }
   if (!Number.isFinite(out.global.server.port) || out.global.server.port <= 0) {

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, shell } from 'electron'
+import { app, BrowserWindow, Menu, shell, screen } from 'electron'
 import path from 'node:path'
 import fs from 'node:fs'
 import { resolveDataDir } from './paths.js'
@@ -7,6 +7,7 @@ import { OperationLogger } from './store/logger.js'
 import { FtpSession } from './ftp/client.js'
 import { TransferEngine } from './ftp/transfer-engine.js'
 import { registerIpc, broadcast } from './ipc.js'
+import { resolveWindowSize, MIN_WINDOW } from './window-size.js'
 import { applyMainTextsOverride } from './texts.js'
 
 const isSmoke = process.argv.includes('--smoke')
@@ -66,11 +67,16 @@ function resolveDownloadDir() {
 }
 
 function createWindow() {
+  // 按当前屏幕可用区域（已含缩放换算）适配尺寸；教室希沃大屏常见 1366x768 / 高缩放
+  const { width: winW, height: winH, maximize } = resolveWindowSize(
+    cfg.global.window,
+    screen.getPrimaryDisplay().workAreaSize
+  )
   mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 820,
-    minWidth: 1024,
-    minHeight: 660,
+    width: winW,
+    height: winH,
+    minWidth: MIN_WINDOW.width,
+    minHeight: MIN_WINDOW.height,
     show: !isSmoke && !isHiddenStart,
     backgroundColor: '#f5f7fa',
     autoHideMenuBar: true,
@@ -87,6 +93,18 @@ function createWindow() {
     if (/^https?:/i.test(url)) shell.openExternal(url)
     return { action: 'deny' }
   })
+  if (maximize && !isSmoke) mainWindow.maximize()
+
+  // 关闭时记住窗口状态（普通尺寸 + 是否最大化），下次启动恢复
+  const saveWindowState = () => {
+    try {
+      if (!mainWindow || mainWindow.isDestroyed()) return
+      const b = mainWindow.getNormalBounds()
+      cfg.global.window = { width: b.width, height: b.height, maximized: mainWindow.isMaximized() }
+      persist()
+    } catch { /* 保存失败不影响退出 */ }
+  }
+  mainWindow.on('close', saveWindowState)
   mainWindow.on('closed', () => { mainWindow = null })
 
   if (!app.isPackaged && process.env.ELECTRON_RENDERER_URL) {

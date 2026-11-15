@@ -518,3 +518,7 @@ input, select, textarea { font-family: inherit; }
 ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: var(--radius-s); border: 2px solid transparent; background-clip: content-box; }
 ::-webkit-scrollbar-thumb:hover { background: #a6a6a6; background-clip: content-box; }
 ::-webkit-scrollbar-track { background: #f0f0f0; }
+
+/* 窗口大小滑块 */
+.slider { flex: 1; accent-color: var(--accent); }
+.slider-val { color: var(--text-2); font-size: 12.5px; min-width: 56px; text-align: right; }

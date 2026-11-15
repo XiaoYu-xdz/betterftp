@@ -489,3 +489,7 @@ input, select, textarea { font-family: inherit; }
 ::-webkit-scrollbar-thumb { background: #ccd3e0; border-radius: 5px; border: 2px solid transparent; background-clip: content-box; }
 ::-webkit-scrollbar-thumb:hover { background: #b4bdce; background-clip: content-box; }
 ::-webkit-scrollbar-track { background: transparent; }
+
+/* 窗口大小滑块 */
+.slider { flex: 1; accent-color: var(--accent); }
+.slider-val { color: var(--text-2); font-size: 12.5px; min-width: 56px; text-align: right; }
