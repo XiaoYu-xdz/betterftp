@@ -789,3 +789,7 @@ body { background: #e8f2fa !important; }
 }
 .fortune-name:hover { background: #e8f2fb; border-color: var(--accent); }
 .fortune-name.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* Rainbow：横向流动渐变（替换旧的旋转渐变） */
+@keyframes bf-flow { to { background-position: 200% 0; } }
+.bf-rainbow { animation: bf-flow 6s linear infinite; }

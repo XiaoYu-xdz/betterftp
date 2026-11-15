@@ -10,7 +10,8 @@ const DEFAULT_COLORS = ['#0078d7', '#00b7c3', '#8764b8']
 function defaultStyle() {
   return {
     fill: { mode: 'solid', color: '#fdfdfd', colors: [...DEFAULT_COLORS] },
-    border: { mode: 'solid', color: '#adadad', colors: [...DEFAULT_COLORS] }
+    border: { mode: 'solid', color: '#adadad', colors: [...DEFAULT_COLORS] },
+    saturation: 100
   }
 }
 
@@ -47,6 +48,9 @@ export function StyleTab({ globalCfg, onSaved, showToast, showError }) {
 
   const setMode = (which, mode) => {
     setStyles((s) => ({ ...s, [target]: { ...s[target], [which]: { ...s[target][which], mode } } }))
+  }
+  const setSaturation = (value) => {
+    setStyles((s) => ({ ...s, [target]: { ...s[target], saturation: value } }))
   }
 
   const save = async () => {
@@ -122,6 +126,20 @@ export function StyleTab({ globalCfg, onSaved, showToast, showError }) {
 
           <label>{T.styleTab.border}</label>
           <ModeChoice value={current.border.mode} onChange={(m) => setMode('border', m)} />
+
+          <label>{T.styleTab.saturation}</label>
+          <div className="inline-row">
+            <input
+              type="range"
+              className="slider"
+              min={0}
+              max={200}
+              step={5}
+              value={current.saturation ?? 100}
+              onChange={(e) => setSaturation(Number(e.target.value))}
+            />
+            <span className="slider-val">{current.saturation ?? 100}%</span>
+          </div>
 
           <label>{T.styleTab.preview}</label>
           <div className="inline-row">

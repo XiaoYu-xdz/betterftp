@@ -8,6 +8,7 @@ describe('底部按钮样式配置 normalizeUi', () => {
       expect(ui.buttonStyles[id]).toBeTruthy()
       expect(ui.buttonStyles[id].fill.mode).toBe('solid')
       expect(ui.buttonStyles[id].border.color).toBe('#adadad')
+      expect(ui.buttonStyles[id].saturation).toBe(100)
     }
   })
 
@@ -33,6 +34,12 @@ describe('底部按钮样式配置 normalizeUi', () => {
       expect(ui.buttonStyles[id].fill.color).toBe('#ffaa00')
       expect(ui.buttonStyles[id].border.color).toBe('#00aaff')
     }
+  })
+
+  it('饱和度夹取在 0~200', () => {
+    const ui = normalizeUi({ buttonStyles: { promo: { saturation: 999 }, toolbox: { saturation: -5 } } })
+    expect(ui.buttonStyles.promo.saturation).toBe(200)
+    expect(ui.buttonStyles.toolbox.saturation).toBe(0)
   })
 
   it('非法颜色被替换为默认值', () => {

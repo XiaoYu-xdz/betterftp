@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { footerButtonStyle } from '../../src/renderer/src/footer-style.js'
+import { footerButtonStyle, applySaturation, hexToRgb } from '../../src/renderer/src/footer-style.js'
 
 const solid = { mode: 'solid', color: '#fdfdfd', colors: ['#0078d7', '#00b7c3'] }
 
@@ -14,15 +14,16 @@ describe('底部按钮样式 footerButtonStyle', () => {
     expect(r.style.borderColor).toBe('#00ff00')
   })
 
-  it('填充 Rainbow → 渐变背景 + 动画类', () => {
+  it('填充 Rainbow → 横向渐变背景 + 动画类', () => {
     const r = footerButtonStyle({
       fill: { mode: 'rainbow', colors: ['#ff0000', '#00ff00', '#0000ff'] },
       border: { mode: 'solid', color: '#adadad' }
     })
     expect(r.className).toBe('bf-rainbow')
-    expect(r.style.background).toContain('conic-gradient')
+    expect(r.style.background).toContain('linear-gradient(90deg')
     expect(r.style.background).toContain('padding-box')
     expect(r.style.background).toContain('border-box')
+    expect(r.style.backgroundSize).toBe('200% 100%')
     expect(r.style.borderColor).toBe('transparent')
   })
 
@@ -33,15 +34,15 @@ describe('底部按钮样式 footerButtonStyle', () => {
     })
     expect(r.className).toBe('bf-rainbow')
     expect(r.style.background).toContain('linear-gradient(#123456')
-    expect(r.style.background).toContain('conic-gradient')
+    expect(r.style.background).toContain('linear-gradient(90deg')
   })
 
-  it('两者都 Rainbow → 双层渐变', () => {
+  it('两者都 Rainbow → 双层横向渐变', () => {
     const r = footerButtonStyle({
       fill: { mode: 'rainbow', colors: ['#ff0000', '#00ff00'] },
       border: { mode: 'rainbow', colors: ['#0000ff', '#ffff00'] }
     })
-    expect((r.style.background.match(/conic-gradient/g) || []).length).toBe(2)
+    expect((r.style.background.match(/linear-gradient\(90deg/g) || []).length).toBe(2)
   })
 
   it('rainbow 模式但颜色不足 2 个 → 回退单色', () => {
@@ -58,5 +59,44 @@ describe('底部按钮样式 footerButtonStyle', () => {
     expect(r.className).toBe('')
     expect(r.style.backgroundColor).toBe('#fdfdfd')
     expect(r.style.borderColor).toBe('#adadad')
+  })
+})
+
+describe('饱和度 applySaturation', () => {
+  it('factor=1 保持原色', () => {
+    expect(applySaturation('#0078d7', 1)).toBe('#0078d7')
+  })
+
+  it('factor=0 变为灰度（RGB 三分量相等）', () => {
+    const { r, g, b } = hexToRgb(applySaturation('#0078d7', 0))
+    expect(r).toBe(g)
+    expect(g).toBe(b)
+  })
+
+  it('factor=2 提高饱和度（对低饱和颜色有效）', () => {
+    // #47617a 是偏灰的蓝，饱和度约 27%，提高后应变化
+    expect(applySaturation('#47617a', 2)).not.toBe('#47617a')
+  })
+
+  it('饱和度作用于 Rainbow 颜色', () => {
+    const base = footerButtonStyle({
+      saturation: 100,
+      fill: { mode: 'rainbow', colors: ['#ff0000', '#00ff00'] },
+      border: { mode: 'solid', color: '#adadad' }
+    })
+    const gray = footerButtonStyle({
+      saturation: 0,
+      fill: { mode: 'rainbow', colors: ['#ff0000', '#00ff00'] },
+      border: { mode: 'solid', color: '#adadad' }
+    })
+    expect(base.style.background).not.toBe(gray.style.background)
+    // 灰度后渐变两端应为灰阶
+    expect(gray.style.background).not.toContain('#ff0000')
+  })
+
+  it('饱和度夹取在 0~200', () => {
+    const hi = footerButtonStyle({ saturation: 999, fill: { mode: 'solid', color: '#0078d7' }, border: solid })
+    const capped = footerButtonStyle({ saturation: 200, fill: { mode: 'solid', color: '#0078d7' }, border: solid })
+    expect(hi.style.backgroundColor).toBe(capped.style.backgroundColor)
   })
 })

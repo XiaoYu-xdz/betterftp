@@ -44,7 +44,8 @@ export const FOOTER_BUTTON_IDS = ['promo', 'toolbox', 'about', 'settings']
 export function defaultButtonStyle() {
   return {
     fill: { mode: 'solid', color: '#fdfdfd', colors: ['#0078d7', '#00b7c3', '#8764b8'] },
-    border: { mode: 'solid', color: '#adadad', colors: ['#0078d7', '#00b7c3', '#8764b8'] }
+    border: { mode: 'solid', color: '#adadad', colors: ['#0078d7', '#00b7c3', '#8764b8'] },
+    saturation: 100 // 0~200，100 = 原色
   }
 }
 
@@ -189,7 +190,10 @@ export function normalizeUi(ui) {
     const style = src[id] || baseAll || {}
     out.buttonStyles[id] = {
       fill: normalizeChoice(style.fill, def.fill),
-      border: normalizeChoice(style.border, def.border)
+      border: normalizeChoice(style.border, def.border),
+      saturation: Number.isFinite(style.saturation)
+        ? Math.max(0, Math.min(200, Math.round(style.saturation)))
+        : 100
     }
   }
   return out

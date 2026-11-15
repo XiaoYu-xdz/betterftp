@@ -446,6 +446,7 @@ export const T = {
     targets: { promo: 'Promo', toolbox: 'Toolbox', about: 'About', settings: 'Settings' },
     fill: 'Fill',
     border: 'Border',
+    saturation: 'Saturation',
     solid: 'Solid',
     rainbow: 'Rainbow',
     addColor: 'Add Color',
