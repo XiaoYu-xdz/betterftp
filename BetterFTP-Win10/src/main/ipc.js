@@ -93,10 +93,28 @@ export function registerIpc(ctx) {
     return size
   })
 
+  // ---------- 窗口控制（无边框自绘标题栏） ----------
+  register('window:minimize', () => {
+    ctx.getWindow()?.minimize()
+    return {}
+  })
+  register('window:close', () => {
+    ctx.getWindow()?.close()
+    return {}
+  })
+  register('window:toggleMaximize', () => {
+    const w = ctx.getWindow()
+    if (!w) return {}
+    if (w.isMaximized()) w.unmaximize()
+    else w.maximize()
+    return { maximized: w.isMaximized() }
+  })
+
   // ---------- 百宝箱：学生名单 / 经典语录 / 软件名 ----------
   const appRootPath = () => (app.isPackaged ? app.getAppPath() : path.resolve(__dirname, '../..'))
   const studentsFile = path.join(dataDir, '学生名单.txt')
   const quotesFile = path.join(dataDir, '经典语录.json')
+  const fortunesFile = path.join(dataDir, '人品评价.json')
   const namesFile = path.join(dataDir, '软件名.json')
 
   const DEFAULT_STUDENTS = Array.from({ length: 54 }, (_, i) => '同学' + String(i + 1).padStart(2, '0'))
@@ -108,6 +126,13 @@ export function registerIpc(ctx) {
     '下课铃是给老师听的，不是给你们听的。'
   ]
   const DEFAULT_NAMES = ['BetterFTP', '课件传送门', '课件搬运工', '班级文件管家', '作业运输机']
+  const DEFAULT_FORTUNES = {
+    great: '爆表！今天干什么都顺',
+    good: '不错，适合举手发言',
+    normal: '平平淡淡才是真',
+    low: '建议今天低调一点',
+    bad: '今天适合安静刷题'
+  }
 
   function readJsonOrInit(file, def) {
     try {
@@ -134,11 +159,36 @@ export function registerIpc(ctx) {
     return [...DEFAULT_STUDENTS]
   }
 
+  function readFortunes() {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(fortunesFile, 'utf8'))
+      if (parsed && typeof parsed === 'object') {
+        return { ...DEFAULT_FORTUNES, ...Object.fromEntries(Object.entries(parsed).filter(([, v]) => typeof v === 'string')) }
+      }
+    } catch { /* 不存在或损坏 */ }
+    try {
+      fs.mkdirSync(dataDir, { recursive: true })
+      fs.writeFileSync(fortunesFile, JSON.stringify(DEFAULT_FORTUNES, null, 2), 'utf8')
+    } catch { /* ignore */ }
+    return { ...DEFAULT_FORTUNES }
+  }
+
   register('toolbox:getData', () => ({
     students: readStudents(),
     quotes: readJsonOrInit(quotesFile, DEFAULT_QUOTES),
-    names: readJsonOrInit(namesFile, DEFAULT_NAMES)
+    names: readJsonOrInit(namesFile, DEFAULT_NAMES),
+    fortunes: readFortunes()
   }))
+
+  register('toolbox:saveFortunes', ({ fortunes }) => {
+    const clean = { ...DEFAULT_FORTUNES }
+    for (const k of Object.keys(DEFAULT_FORTUNES)) {
+      const v = String(fortunes?.[k] ?? '').trim()
+      if (v) clean[k] = v.slice(0, 120)
+    }
+    fs.writeFileSync(fortunesFile, JSON.stringify(clean, null, 2), 'utf8')
+    return clean
+  })
 
   register('toolbox:saveQuotes', ({ quotes }) => {
     const list = (Array.isArray(quotes) ? quotes : [])

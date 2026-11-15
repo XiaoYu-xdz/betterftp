@@ -39,6 +39,15 @@ export function validateServerAddress(raw) {
   return null
 }
 
+export const FOOTER_BUTTON_IDS = ['promo', 'toolbox', 'about', 'settings']
+
+export function defaultButtonStyle() {
+  return {
+    fill: { mode: 'solid', color: '#fdfdfd', colors: ['#0078d7', '#00b7c3', '#8764b8'] },
+    border: { mode: 'solid', color: '#adadad', colors: ['#0078d7', '#00b7c3', '#8764b8'] }
+  }
+}
+
 export function defaultConfig() {
   return {
     version: CONFIG_VERSION,
@@ -51,10 +60,12 @@ export function defaultConfig() {
       downloadDir: 'desktop',      // 'desktop' 或绝对路径
       window: { width: null, height: null, maximized: false }, // 上次窗口状态（null=自动适配屏幕）
       ui: {
-        // 底部四个按钮（宣传片/百宝箱/关于/设置）的样式：填充与外框各自可设单色/彩虹
-        footerStyle: {
-          fill: { mode: 'solid', color: '#fdfdfd', colors: ['#0078d7', '#00b7c3', '#8764b8'] },
-          border: { mode: 'solid', color: '#adadad', colors: ['#0078d7', '#00b7c3', '#8764b8'] }
+        // 底部四个按钮各自独立的样式：填充与外框各自可设单色/彩虹
+        buttonStyles: {
+          promo: defaultButtonStyle(),
+          toolbox: defaultButtonStyle(),
+          about: defaultButtonStyle(),
+          settings: defaultButtonStyle()
         }
       }
     },
@@ -170,14 +181,18 @@ function normalizeChoice(choice, fallback) {
 }
 
 export function normalizeUi(ui) {
-  const def = defaultConfig().global.ui.footerStyle
-  const src = ui?.footerStyle || {}
-  return {
-    footerStyle: {
-      fill: normalizeChoice(src.fill, def.fill),
-      border: normalizeChoice(src.border, def.border)
+  const def = defaultConfig().global.ui.buttonStyles.promo
+  const baseAll = ui?.footerStyle || null // 旧版统一样式：迁移为每个按钮的初始值
+  const src = ui?.buttonStyles || {}
+  const out = { buttonStyles: {} }
+  for (const id of FOOTER_BUTTON_IDS) {
+    const style = src[id] || baseAll || {}
+    out.buttonStyles[id] = {
+      fill: normalizeChoice(style.fill, def.fill),
+      border: normalizeChoice(style.border, def.border)
     }
   }
+  return out
 }
 
 export function sortAccounts(accounts) {

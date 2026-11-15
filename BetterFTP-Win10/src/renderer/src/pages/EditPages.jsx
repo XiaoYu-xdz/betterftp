@@ -92,3 +92,47 @@ export function EditNames({ names, onSave, onBack, showToast, showError }) {
     </div>
   )
 }
+
+/** 编辑人品评价文案（通过命令栏 zcode 进入） */
+export function EditFortunes({ fortunes, onSave, onBack, showToast, showError }) {
+  const TIERS = [
+    { key: 'great', label: '90-100 分' },
+    { key: 'good', label: '70-89 分' },
+    { key: 'normal', label: '40-69 分' },
+    { key: 'low', label: '15-39 分' },
+    { key: 'bad', label: '0-14 分' }
+  ]
+  const [form, setForm] = useState(() => ({ ...fortunes }))
+  const [saving, setSaving] = useState(false)
+
+  const save = async () => {
+    setSaving(true)
+    try {
+      await onSave(form)
+      showToast(T.editFortunes.saved)
+    } catch (e) { showError(e) } finally { setSaving(false) }
+  }
+
+  return (
+    <div className="edit-page">
+      <div className="settings-header">
+        <button className="btn" onClick={onBack}>{T.toolbox.back}</button>
+        <h2>{T.editFortunes.title}</h2>
+        <button className="btn primary" style={{ marginLeft: 'auto' }} onClick={save} disabled={saving}>{T.editFortunes.save}</button>
+      </div>
+      <div className="card">
+        <div className="hint-text" style={{ marginBottom: 10 }}>{T.editFortunes.hint}</div>
+        {TIERS.map((t) => (
+          <div className="edit-row" key={t.key}>
+            <span className="edit-index" style={{ width: 82 }}>{t.label}</span>
+            <input
+              className="input edit-input"
+              value={form[t.key] || ''}
+              onChange={(e) => setForm({ ...form, [t.key]: e.target.value })}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}

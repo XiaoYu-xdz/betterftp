@@ -77,6 +77,7 @@ function createWindow() {
     height: winH,
     minWidth: MIN_WINDOW.width,
     minHeight: MIN_WINDOW.height,
+    frame: false, // 自绘标题栏（PCL 风格）
     show: !isSmoke && !isHiddenStart,
     backgroundColor: '#f5f7fa',
     autoHideMenuBar: true,

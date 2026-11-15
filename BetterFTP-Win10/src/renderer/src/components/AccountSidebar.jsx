@@ -3,7 +3,7 @@ import logoUrl from '../assets/logo.png'
 import { T } from '../texts.js'
 
 /** 左侧账号列表（竖栏卡片 + 底部设置按钮） */
-export function AccountSidebar({ accounts, connStates, activeId, onSelect, onAdd, onOpenSettings, onOpenAbout, onOpenToolbox, onOpenPromo, brandName, footerStyle }) {
+export function AccountSidebar({ accounts, connStates, activeId, onSelect, onAdd, onOpenSettings, onOpenAbout, onOpenToolbox, onOpenPromo, brandName, footerStyles }) {
   return (
     <aside className="sidebar">
       <div className="brand">
@@ -38,10 +38,10 @@ export function AccountSidebar({ accounts, connStates, activeId, onSelect, onAdd
       <button className="add-account" onClick={onAdd}>{T.side.add}</button>
 
       <div className="sidebar-footer">
-        <button className={`btn settings-btn ${footerStyle?.className || ''}`} style={footerStyle?.style} onClick={onOpenPromo}>{T.side.promo}</button>
-        <button className={`btn settings-btn ${footerStyle?.className || ''}`} style={footerStyle?.style} onClick={onOpenToolbox}>{T.side.toolbox}</button>
-        <button className={`btn settings-btn ${footerStyle?.className || ''}`} style={footerStyle?.style} onClick={onOpenAbout}>{T.side.about}</button>
-        <button className={`btn settings-btn ${footerStyle?.className || ''}`} style={footerStyle?.style} onClick={onOpenSettings}>{T.side.settings}</button>
+        <button className={`btn settings-btn ${footerStyles?.promo?.className || ''}`} style={footerStyles?.promo?.style} onClick={onOpenPromo}>{T.side.promo}</button>
+        <button className={`btn settings-btn ${footerStyles?.toolbox?.className || ''}`} style={footerStyles?.toolbox?.style} onClick={onOpenToolbox}>{T.side.toolbox}</button>
+        <button className={`btn settings-btn ${footerStyles?.about?.className || ''}`} style={footerStyles?.about?.style} onClick={onOpenAbout}>{T.side.about}</button>
+        <button className={`btn settings-btn ${footerStyles?.settings?.className || ''}`} style={footerStyles?.settings?.style} onClick={onOpenSettings}>{T.side.settings}</button>
       </div>
     </aside>
   )

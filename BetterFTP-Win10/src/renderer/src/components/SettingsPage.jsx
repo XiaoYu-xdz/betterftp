@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Modal } from './dialogs.jsx'
 import { fmtClock } from '../utils.js'
 import { T } from '../texts.js'
-import { footerButtonStyle } from '../footer-style.js'
+import { StyleTab } from './StyleTab.jsx'
 
 const api = () => window.betterftp
 
@@ -43,11 +43,13 @@ export function SettingsPage({ accounts, globalCfg, paths, tab, onTab, onBack, o
         <button className={`tab${tab === 'global' ? ' active' : ''}`} onClick={() => onTab('global')}>{T.settings.tabGlobal}</button>
         <button className={`tab${tab === 'accounts' ? ' active' : ''}`} onClick={() => onTab('accounts')}>{T.settings.tabAccounts}</button>
         <button className={`tab${tab === 'logs' ? ' active' : ''}`} onClick={() => onTab('logs')}>{T.settings.tabLogs}</button>
+        <button className={`tab${tab === 'style' ? ' active' : ''}`} onClick={() => onTab('style')}>{T.styleTab.tab}</button>
       </div>
 
       {tab === 'global' && <GlobalTab globalCfg={globalCfg} paths={paths} accounts={accounts} onSaved={onGlobalChanged} onAccountsChanged={onAccountsChanged} showError={showError} confirm={confirm} showToast={showToast} />}
       {tab === 'accounts' && <AccountsTab accounts={accounts} globalCfg={globalCfg} onAccountsChanged={onAccountsChanged} showError={showError} confirm={confirm} showToast={showToast} />}
       {tab === 'logs' && <LogsTab accounts={accounts} showError={showError} confirm={confirm} showToast={showToast} />}
+      {tab === 'style' && <StyleTab globalCfg={globalCfg} onSaved={onGlobalChanged} showToast={showToast} showError={showError} />}
     </div>
   )
 }
@@ -74,8 +76,7 @@ function GlobalTab({ globalCfg, paths, accounts, onSaved, onAccountsChanged, sho
     timeoutSec: Math.round(globalCfg.timeoutMs / 1000),
     passive: globalCfg.passive,
     maxConcurrentTransfers: globalCfg.maxConcurrentTransfers,
-    downloadDir: globalCfg.downloadDir,
-    footerStyle: globalCfg.ui?.footerStyle || null
+    downloadDir: globalCfg.downloadDir
   }))
   useEffect(() => {
     setForm({
@@ -85,30 +86,9 @@ function GlobalTab({ globalCfg, paths, accounts, onSaved, onAccountsChanged, sho
       timeoutSec: Math.round(globalCfg.timeoutMs / 1000),
       passive: globalCfg.passive,
       maxConcurrentTransfers: globalCfg.maxConcurrentTransfers,
-      downloadDir: globalCfg.downloadDir,
-      footerStyle: globalCfg.ui?.footerStyle || null
+      downloadDir: globalCfg.downloadDir
     })
   }, [globalCfg])
-
-  // ---------- 窗口大小 ----------
-  const [winInfo, setWinInfo] = useState(null)
-  const [winW, setWinW] = useState(1280)
-  const [winH, setWinH] = useState(820)
-  useEffect(() => {
-    api().windowInfo().then((info) => {
-      setWinInfo(info)
-      setWinW(info.width || 1280)
-      setWinH(info.height || 820)
-    }).catch(() => { /* 窗口信息不可用时隐藏卡片 */ })
-  }, [])
-  const applyWindow = async () => {
-    try {
-      const r = await api().applyWindowSize({ width: winW, height: winH })
-      setWinW(r.width)
-      setWinH(r.height)
-      showToast(T.settings.windowApplied)
-    } catch (e) { showError(e) }
-  }
 
   const save = async () => {
     const port = Number(form.port)
@@ -126,8 +106,7 @@ function GlobalTab({ globalCfg, paths, accounts, onSaved, onAccountsChanged, sho
           timeoutMs: Math.round(sec * 1000),
           passive: form.passive,
           maxConcurrentTransfers: Number(form.maxConcurrentTransfers),
-          downloadDir: form.downloadDir,
-          ui: { ...(globalCfg.ui || {}), footerStyle: form.footerStyle }
+          downloadDir: form.downloadDir
         }
       })
       onSaved(next.global)
@@ -217,72 +196,6 @@ function GlobalTab({ globalCfg, paths, accounts, onSaved, onAccountsChanged, sho
           <button className="btn primary" onClick={save}>{T.settings.save}</button>
         </div>
       </div>
-
-      {winInfo && (
-        <div className="card">
-          <h3>{T.settings.windowSection}</h3>
-          <div className="form-grid">
-            <label>{T.settings.windowWidth}</label>
-            <div className="inline-row">
-              <input
-                type="range"
-                className="slider"
-                min={winInfo.min.width}
-                max={Math.max(winInfo.workArea.width, winInfo.min.width)}
-                step={10}
-                value={winW}
-                onChange={(e) => setWinW(Number(e.target.value))}
-              />
-              <span className="slider-val">{winW} px</span>
-            </div>
-            <label>{T.settings.windowHeight}</label>
-            <div className="inline-row">
-              <input
-                type="range"
-                className="slider"
-                min={winInfo.min.height}
-                max={Math.max(winInfo.workArea.height, winInfo.min.height)}
-                step={10}
-                value={winH}
-                onChange={(e) => setWinH(Number(e.target.value))}
-              />
-              <span className="slider-val">{winH} px</span>
-            </div>
-            <div className="full hint-text">{T.settings.windowHint(winInfo.workArea, winInfo.min)}</div>
-          </div>
-          <div style={{ marginTop: 12 }}>
-            <button className="btn" onClick={applyWindow}>{T.settings.windowApply}</button>
-          </div>
-        </div>
-      )}
-
-      {form.footerStyle && (() => {
-        const preview = footerButtonStyle(form.footerStyle)
-        return (
-          <div className="card">
-            <h3>{T.footerStyle.title}</h3>
-            <div className="form-grid">
-              <label>{T.footerStyle.fill}</label>
-              <ColorChoice
-                value={form.footerStyle.fill}
-                onChange={(v) => setForm({ ...form, footerStyle: { ...form.footerStyle, fill: v } })}
-              />
-              <label>{T.footerStyle.border}</label>
-              <ColorChoice
-                value={form.footerStyle.border}
-                onChange={(v) => setForm({ ...form, footerStyle: { ...form.footerStyle, border: v } })}
-              />
-              <label>{T.footerStyle.preview}</label>
-              <div className="inline-row">
-                <button className={`btn settings-btn ${preview.className}`} style={{ ...preview.style, width: 180 }}>
-                  {T.side.toolbox}
-                </button>
-                <span className="hint-text">{T.footerStyle.saveHint}</span>
-              </div>
-            </div>
-          </div>
-        )
-      })()}
 
       <div className="card">
         <h3>{T.settings.backupSection}</h3>
@@ -672,75 +585,3 @@ function LogsTab({ accounts, showError, confirm, showToast }) {
   )
 }
 
-
-const PALETTE = ['#fdfdfd', '#0078d7', '#00b7c3', '#8764b8', '#107c10', '#c19c00', '#d13438', '#e3008c', '#4c4a48', '#ffffff', '#ff8c00', '#00cc6a']
-
-/** 单色 / Rainbow 切换 + 调色板 */
-function ColorChoice({ value, onChange }) {
-  const rainbow = value?.mode === 'rainbow'
-  const colors = value?.colors || []
-  const color = value?.color || '#fdfdfd'
-  return (
-    <div className="color-choice">
-      <div className="mode-row">
-        <label className="mode-item">
-          <input type="radio" checked={!rainbow} onChange={() => onChange({ ...value, mode: 'solid' })} />
-          {T.footerStyle.solid}
-        </label>
-        <label className="mode-item">
-          <input type="radio" checked={rainbow} onChange={() => onChange({ ...value, mode: 'rainbow' })} />
-          {T.footerStyle.rainbow}
-        </label>
-      </div>
-      {!rainbow ? (
-        <ColorPalette value={color} onChange={(c) => onChange({ ...value, color: c })} />
-      ) : (
-        <div className="rainbow-colors">
-          <span className="hint-text">{T.footerStyle.colors}</span>
-          <div className="swatch-row">
-            {colors.map((c, i) => (
-              <span key={i} className="swatch-wrap">
-                <input
-                  type="color"
-                  className="swatch-input"
-                  value={c}
-                  onChange={(e) => onChange({ ...value, colors: colors.map((x, j) => (j === i ? e.target.value : x)) })}
-                  title={c}
-                />
-                {colors.length > 2 && (
-                  <button
-                    className="swatch-del"
-                    title={T.settings.del}
-                    onClick={() => onChange({ ...value, colors: colors.filter((_, j) => j !== i) })}
-                  >×</button>
-                )}
-              </span>
-            ))}
-            <button
-              className="btn mini"
-              onClick={() => onChange({ ...value, colors: [...colors, '#0078d7'] })}
-            >{T.footerStyle.addColor}</button>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-/** 调色板选择（预设色块 + 自定义取色） */
-function ColorPalette({ value, onChange }) {
-  return (
-    <div className="palette-row">
-      {PALETTE.map((c) => (
-        <button
-          key={c}
-          className={`palette-swatch${value?.toLowerCase() === c.toLowerCase() ? ' selected' : ''}`}
-          style={{ background: c }}
-          onClick={() => onChange(c)}
-          title={c}
-        />
-      ))}
-      <input type="color" className="swatch-input" value={value || '#ffffff'} onChange={(e) => onChange(e.target.value)} title={T.footerStyle.custom} />
-    </div>
-  )
-}

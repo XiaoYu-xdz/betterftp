@@ -28,6 +28,11 @@ const api = {
   getLoginItem: invoke('app:getLoginItem'),
   setLoginItem: invoke('app:setLoginItem'),
 
+  // 窗口控制
+  minimizeWindow: invoke('window:minimize'),
+  closeWindow: invoke('window:close'),
+  toggleMaximize: invoke('window:toggleMaximize'),
+
   // 窗口尺寸
   windowInfo: invoke('window:info'),
   applyWindowSize: invoke('window:applySize'),
@@ -36,6 +41,7 @@ const api = {
   toolboxGetData: invoke('toolbox:getData'),
   saveQuotes: invoke('toolbox:saveQuotes'),
   saveNames: invoke('toolbox:saveNames'),
+  saveFortunes: invoke('toolbox:saveFortunes'),
   openAiWindow: invoke('ai:openWindow'),
 
   // 配置

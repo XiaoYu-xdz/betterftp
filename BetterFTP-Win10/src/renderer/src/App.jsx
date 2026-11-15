@@ -3,9 +3,9 @@ import { AccountSidebar } from './components/AccountSidebar.jsx'
 import { TransferDock } from './components/TransferDock.jsx'
 import { SettingsPage } from './components/SettingsPage.jsx'
 import { AboutPage } from './components/AboutDialog.jsx'
-import { CommandBar } from './components/CommandBar.jsx'
+import { TitleBar } from './components/TitleBar.jsx'
 import { TreasureBox } from './pages/TreasureBox.jsx'
-import { EditQuotes, EditNames } from './pages/EditPages.jsx'
+import { EditQuotes, EditNames, EditFortunes } from './pages/EditPages.jsx'
 import { footerButtonStyle } from './footer-style.js'
 import { ConfirmDialog, PromptDialog, ConflictDialog, ErrorDialog, ErrorPanel } from './components/dialogs.jsx'
 import { fmtSize, fmtTime, fileIcon, containerFolderName } from './utils.js'
@@ -480,7 +480,13 @@ export default function App() {
   }
 
   const goSettings = (tab = 'global') => { setSettingsTab(tab); setView('settings') }
-  const footerBtns = footerButtonStyle(globalCfg?.ui?.footerStyle)
+  const buttonStyles = globalCfg?.ui?.buttonStyles || {}
+  const footerBtns = {
+    promo: footerButtonStyle(buttonStyles.promo),
+    toolbox: footerButtonStyle(buttonStyles.toolbox),
+    about: footerButtonStyle(buttonStyles.about),
+    settings: footerButtonStyle(buttonStyles.settings)
+  }
   const changeName = () => {
     const list = Array.isArray(toolbox.names) && toolbox.names.length > 0 ? toolbox.names : [brandName]
     const next = (nameIdx + 1) % list.length
@@ -495,12 +501,18 @@ export default function App() {
     await api().saveNames({ names: list })
     setToolbox((t) => ({ ...t, names: list }))
   }
+  const saveFortunes = async (next) => {
+    const saved = await api().saveFortunes({ fortunes: next })
+    setToolbox((t) => ({ ...t, fortunes: saved }))
+  }
   const connected = activeConn?.status === 'connected'
   const listable = connected && perms !== 'w' && perms !== 'none'
 
   return (
     <div className="app-shell">
-      <CommandBar onRun={(id) => { if (id === 'editQuotes' || id === 'editNames') setView(id) }} />
+      <TitleBar brandName={brandName} onRun={(id) => {
+        if (id === 'editQuotes' || id === 'editNames' || id === 'editFortunes') setView(id)
+      }} />
       <div className="app">
       <AccountSidebar
         accounts={accounts}
@@ -513,7 +525,7 @@ export default function App() {
         onOpenToolbox={() => setView('toolbox')}
         onOpenPromo={() => { /* 宣传片制作中：点击暂无反应 */ }}
         brandName={brandName}
-        footerStyle={footerBtns}
+        footerStyles={footerBtns}
       />
 
       {view === 'settings' ? (
@@ -544,6 +556,14 @@ export default function App() {
         <EditQuotes
           quotes={toolbox.quotes}
           onSave={saveQuotes}
+          onBack={() => setView('toolbox')}
+          showToast={showToast}
+          showError={showError}
+        />
+      ) : view === 'editFortunes' ? (
+        <EditFortunes
+          fortunes={toolbox.fortunes || {}}
+          onSave={saveFortunes}
           onBack={() => setView('toolbox')}
           showToast={showToast}
           showError={showError}
