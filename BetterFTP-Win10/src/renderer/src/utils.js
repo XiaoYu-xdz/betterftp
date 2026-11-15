@@ -60,3 +60,13 @@ export function fileIcon(item) {
   if (['zip', 'rar', '7z'].includes(ext)) return '🗜️'
   return '📄'
 }
+
+/**
+ * 多选下载的桌面容器文件夹名：账号名 + 月.日（mm.dd），如 "张老师11.15"
+ * 自动去掉 Windows 文件名非法字符
+ */
+export function containerFolderName(displayName, date = new Date()) {
+  const pad = (n) => String(n).padStart(2, '0')
+  const name = String(displayName || 'FTP').replace(/[\\/:*?"<>|]/g, '').trim() || 'FTP'
+  return `${name}${pad(date.getMonth() + 1)}.${pad(date.getDate())}`
+}

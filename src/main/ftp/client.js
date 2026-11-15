@@ -234,6 +234,11 @@ export class FtpSession {
     }
   }
 
+  /** 轻量列目录（不触发权限探测，供目录树遍历使用） */
+  async listDir(remotePath) {
+    return this.#rawList(normalizeRemotePath(remotePath))
+  }
+
   getEncoding() {
     return this.encoding || 'utf-8'
   }

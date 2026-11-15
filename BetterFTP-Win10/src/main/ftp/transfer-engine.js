@@ -196,6 +196,8 @@ export class TransferEngine extends EventEmitter {
   async #doTransfer(client, task, signal) {
     const remoteFull = path.posix.join(task.remotePath, task.name)
     if (task.kind === 'download') {
+      // 确保本地父目录存在（文件夹整体下载会落到多级子目录）
+      try { fs.mkdirSync(path.dirname(task.localPath), { recursive: true }) } catch { /* 下载时会给出具体错误 */ }
       // 目标大小：优先 SIZE（用于进度与续传）
       if (!task.total) {
         const sz = await client.size(remoteFull).catch(() => null)

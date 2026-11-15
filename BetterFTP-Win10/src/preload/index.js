@@ -55,6 +55,7 @@ const api = {
   transfersList: invoke('transfers:list'),
   enqueueUploads: invoke('transfers:enqueueUploads'),
   enqueueDownloads: invoke('transfers:enqueueDownloads'),
+  enqueueTree: invoke('transfers:enqueueTree'),
   transferCancel: invoke('transfers:cancel'),
   transferRetry: invoke('transfers:retry'),
   transferRemove: invoke('transfers:remove'),

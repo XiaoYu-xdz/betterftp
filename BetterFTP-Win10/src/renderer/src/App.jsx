@@ -4,7 +4,7 @@ import { TransferDock } from './components/TransferDock.jsx'
 import { SettingsPage } from './components/SettingsPage.jsx'
 import { AboutPage } from './components/AboutDialog.jsx'
 import { ConfirmDialog, PromptDialog, ConflictDialog, ErrorDialog, ErrorPanel } from './components/dialogs.jsx'
-import { fmtSize, fmtTime, fileIcon } from './utils.js'
+import { fmtSize, fmtTime, fileIcon, containerFolderName } from './utils.js'
 import { T } from './texts.js'
 
 const api = () => window.betterftp
@@ -243,41 +243,94 @@ export default function App() {
 
   // ---------- 下载（支持单个/批量） ----------
   const downloadItems = async (rawTargets) => {
-    const targets = rawTargets.filter((i) => !i.isDir)
-    if (targets.length === 0) {
+    if (!rawTargets || rawTargets.length === 0) {
       showToast(T.msgs.selectDownloadFirst, 'error')
       return
     }
     const dest = (await api().downloadDir()).path
-    const conflicts = []
-    for (const t of targets) {
-      const ex = await api().existsWithSize({ filePath: dest + '\\' + t.name })
-      if (ex.exists) conflicts.push({ item: t, localSize: ex.size })
-    }
-    let strategy = 'overwrite'
-    if (conflicts.length > 0) {
-      const c0 = conflicts[0]
-      const same = c0.localSize === c0.item.size
-      const choice = await conflict({
-        title: conflicts.length > 1 ? T.msgs.conflictMultiLocalTitle(conflicts.length) : T.dialog.conflictTitle,
-        name: conflicts.length > 1 ? `${c0.item.name} 等 ${conflicts.length} 个文件` : c0.item.name,
-        detail: T.msgs.conflictLocalDetail(dest, fmtSize(c0.localSize), same),
-        oldDesc: T.msgs.oldLocal
-      })
-      if (choice === null) return
-      if (choice === 'skip') return
-      strategy = choice
-    }
-    const files = []
-    for (const t of targets) {
+    const dirs = rawTargets.filter((t) => t.isDir)
+    const files = rawTargets.filter((t) => !t.isDir)
+
+    // ① 单个文件：下载到桌面（原有冲突三选一）
+    if (rawTargets.length === 1 && files.length === 1) {
+      const t = files[0]
+      let strategy = 'overwrite'
       let finalName = t.name
-      if (strategy === 'rename' && conflicts.some((c) => c.item === t)) {
-        finalName = (await api().dedupeName({ dir: dest, name: t.name })).name
+      const ex = await api().existsWithSize({ filePath: dest + '\\' + t.name })
+      if (ex.exists) {
+        const choice = await conflict({
+          title: T.dialog.conflictTitle,
+          name: t.name,
+          detail: T.msgs.conflictLocalDetail(dest, fmtSize(ex.size), ex.size === t.size),
+          oldDesc: T.msgs.oldLocal
+        })
+        if (choice === null || choice === 'skip') return
+        strategy = choice
       }
-      files.push({ name: t.name, finalName, size: t.size, strategy: 'overwrite' })
+      if (strategy === 'rename') finalName = (await api().dedupeName({ dir: dest, name: t.name })).name
+      await api().enqueueDownloads({
+        accountId: activeId, remoteDir: activeConn.path, destDir: dest,
+        files: [{ name: t.name, finalName, size: t.size, strategy: 'overwrite' }]
+      })
+      showToast(T.msgs.downloadingTo(1, dest))
+      return
     }
-    await api().enqueueDownloads({ accountId: activeId, remoteDir: activeConn.path, destDir: dest, files })
-    showToast(T.msgs.downloadingTo(files.length, dest))
+
+    // ② 单个文件夹：整体下载为桌面同名文件夹
+    if (rawTargets.length === 1 && dirs.length === 1) {
+      const d = dirs[0]
+      let finalName = d.name
+      const ex = await api().existsWithSize({ filePath: dest + '\\' + d.name })
+      if (ex.exists) {
+        const choice = await conflict({
+          title: T.dialog.conflictTitle,
+          name: d.name,
+          detail: T.msgs.conflictFolderDetail(dest),
+          oldDesc: T.msgs.oldFolder
+        })
+        if (choice === null || choice === 'skip') return
+        if (choice === 'rename') finalName = (await api().dedupeName({ dir: dest, name: d.name })).name
+      }
+      await api().enqueueTree({
+        accountId: activeId,
+        remotePath: joinRemote(activeConn.path, d.name),
+        targetDir: dest + '\\' + finalName
+      })
+      showToast(T.msgs.folderDownloading(d.name))
+      return
+    }
+
+    // ③ 多个项目（文件夹/文件任意混合）：归入桌面容器文件夹「账号名 mm.dd」
+    const container = containerFolderName(activeAccount?.displayName || 'FTP')
+    let finalContainer = container
+    const ex = await api().existsWithSize({ filePath: dest + '\\' + container })
+    if (ex.exists) {
+      const choice = await conflict({
+        title: T.msgs.containerTitle,
+        name: container,
+        detail: T.msgs.containerExistsDetail(dest),
+        oldDesc: T.msgs.oldFolder
+      })
+      if (choice === null || choice === 'skip') return
+      if (choice === 'rename') finalContainer = (await api().dedupeName({ dir: dest, name: container })).name
+    }
+    const containerDir = dest + '\\' + finalContainer
+    for (const d of dirs) {
+      await api().enqueueTree({
+        accountId: activeId,
+        remotePath: joinRemote(activeConn.path, d.name),
+        targetDir: containerDir
+      })
+    }
+    if (files.length > 0) {
+      await api().enqueueDownloads({
+        accountId: activeId,
+        remoteDir: activeConn.path,
+        destDir: containerDir,
+        files: files.map((f) => ({ name: f.name, finalName: f.name, size: f.size, strategy: 'overwrite' }))
+      })
+    }
+    showToast(T.msgs.multiDownloading(rawTargets.length, finalContainer))
   }
 
   const downloadSelected = async () => {
@@ -635,9 +688,9 @@ function FileArea({ conn, hasAccounts, items, selected, search, icons, canDownlo
                   <button className="rbtn" onClick={(e) => { e.stopPropagation(); onOpen(item) }} title={T.table.open}>{T.table.open}</button>
                   <button
                     className="rbtn"
-                    disabled={item.isDir || !canDownload}
+                    disabled={!canDownload}
                     onClick={(e) => { e.stopPropagation(); onDownload(item) }}
-                    title={item.isDir ? T.table.dirNoDownload : T.table.download}
+                    title={T.table.download}
                   >{T.table.download}</button>
                   <button
                     className="rbtn"

@@ -6,6 +6,7 @@ import { migrate, sortAccounts, validateImport } from './store/config.js'
 import { OperationLogger } from './store/logger.js'
 import { FtpOpError } from './ftp/errors.js'
 import { FtpSession } from './ftp/client.js'
+import { walkRemoteTree } from './ftp/tree-download.js'
 import { dedupeName } from './ftp/paths-util.js'
 import { ERR_TEXTS as E } from './texts.js'
 import { MIN_WINDOW, clampWindowSize } from './window-size.js'
@@ -312,6 +313,34 @@ export function registerIpc(ctx) {
       }))
     }
     return { ids, dest }
+  })
+
+  /** 文件夹整体下载：临时连接递归遍历远程目录，逐个文件入队（本地按相对路径建子目录） */
+  register('transfers:enqueueTree', async ({ accountId, remotePath, targetDir }) => {
+    const cfg = getCfg()
+    const account = cfg.accounts.find((a) => a.id === accountId)
+    if (!account) throw new Error(E.ipc.accountDeleted)
+    const dest = targetDir && path.isAbsolute(targetDir) ? targetDir : resolveDownloadDir()
+    const base = remotePath === '/' ? '/' : String(remotePath || '/').replace(/\/$/, '')
+    const tmp = new FtpSession({ account, globalConfig: cfg.global })
+    try {
+      const files = await walkRemoteTree(tmp, base)
+      const ids = []
+      for (const f of files) {
+        const rel = path.posix.relative(base === '/' ? '/' : base, (f.dir === '/' ? '' : f.dir) + '/' + f.name)
+        ids.push(engine.enqueue({
+          kind: 'download',
+          accountId,
+          remotePath: f.dir,
+          name: f.name,
+          localPath: path.join(dest, ...rel.split('/')),
+          total: f.size ?? null
+        }))
+      }
+      return { count: ids.length, ids }
+    } finally {
+      tmp.destroy()
+    }
   })
 
   register('transfers:cancel', ({ id }) => { engine.cancel(id); return {} })
