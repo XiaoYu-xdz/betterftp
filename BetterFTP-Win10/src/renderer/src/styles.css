@@ -726,3 +726,66 @@ body { background: linear-gradient(180deg, #e9f3fb 0%, #f7fbfe 100%); }
   padding: 4px 0;
   user-select: none;
 }
+
+/* ================= 精修：白标题栏 / 尖角 / 浅蓝底 / 悬停灰 ================= */
+.titlebar {
+  background: #ffffff;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+.tb-name { color: var(--text); }
+.tb-search input {
+  border: 1px solid var(--border-strong);
+  background: #f7f7f7;
+}
+.tb-search input:focus { box-shadow: none; border-color: var(--accent); }
+.tb-btn { color: #444; }
+.tb-btn:hover { background: #e5e5e5; }
+.tb-btn.close:hover { background: #e81123; color: #fff; }
+
+/* 所有圆角改回尖角 */
+*, *::before, *::after { border-radius: 0 !important; }
+
+/* 淡蓝色背景复原 */
+body { background: #e8f2fa !important; }
+
+/* 左下角四个按钮：悬停恢复浅灰 */
+.sidebar-footer .btn:hover:not(:disabled) {
+  background: #e5e5e5 !important;
+  border-color: #333 !important;
+  color: var(--text) !important;
+}
+
+/* 百宝箱：每个工具单独一行 */
+.tool-rows { display: flex; flex-direction: column; }
+.tool-row {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 12px 16px;
+  border: 1px solid #3c3c3c;
+  background: #fff;
+  font-size: 14.5px;
+  cursor: pointer;
+  margin-top: -1px;
+}
+.tool-row:first-child { margin-top: 0; }
+.tool-row:hover { background: #e8f2fb; }
+.tool-row.active { border-color: var(--accent); color: var(--accent); background: #e8f2fb; z-index: 1; }
+.tool-row-extra { margin-left: auto; color: var(--text-3); font-size: 12.5px; }
+.tool-row-arrow { margin-left: auto; color: var(--text-3); font-size: 12px; }
+.tool-row-extra + .tool-row-arrow { margin-left: 8px; }
+.tool-panel { border: 1px solid var(--border); border-top: none; padding: 16px; background: #fff; }
+
+/* 今日人品：横向 6×9（9 列 × 6 行） */
+.fortune-grid { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
+.fortune-name {
+  border: 1px solid var(--border-strong);
+  background: #fff;
+  padding: 7px 4px;
+  font-size: 12.5px;
+  cursor: pointer;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.fortune-name:hover { background: #e8f2fb; border-color: var(--accent); }
+.fortune-name.selected { background: var(--accent); color: #fff; border-color: var(--accent); }

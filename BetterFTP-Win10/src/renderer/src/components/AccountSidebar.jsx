@@ -1,16 +1,10 @@
 import React from 'react'
-import logoUrl from '../assets/logo.png'
 import { T } from '../texts.js'
 
 /** 左侧账号列表（竖栏卡片 + 底部设置按钮） */
 export function AccountSidebar({ accounts, connStates, activeId, onSelect, onAdd, onOpenSettings, onOpenAbout, onOpenToolbox, onOpenPromo, brandName, footerStyles }) {
   return (
     <aside className="sidebar">
-      <div className="brand">
-        <div className="logo"><img className="logo-img" src={logoUrl} alt="" draggable={false} /></div>
-        <div>{brandName || T.side.title}{T.side.subtitle && <small>{T.side.subtitle}</small>}</div>
-      </div>
-
       {accounts.map((a) => {
         const st = connStates[a.id] || { status: 'idle' }
         const dotCls = st.status === 'connected' ? 'ok' : st.status === 'connecting' ? 'connecting' : st.status === 'error' ? 'error' : ''
