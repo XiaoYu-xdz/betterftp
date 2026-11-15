@@ -397,7 +397,6 @@ export const T = {
     groupTitle: '百宝箱',
     fortune: '今日人品',
     echo: '回声洞',
-    ai: 'AI',
     change: 'change',
     fortuneTitle: (d) => '今日人品 - ' + d,
     selectStudent: '选择你的名字…',

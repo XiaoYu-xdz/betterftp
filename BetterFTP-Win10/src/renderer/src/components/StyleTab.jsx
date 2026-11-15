@@ -5,6 +5,9 @@ import { footerButtonStyle } from '../footer-style.js'
 const api = () => window.betterftp
 const IDS = ['promo', 'toolbox', 'about', 'settings']
 
+/** 调色板（不使用系统取色器） */
+const PALETTE = ['#fdfdfd', '#0078d7', '#00b7c3', '#8764b8', '#107c10', '#c19c00', '#d13438', '#e3008c', '#4c4a48', '#ffffff', '#ff8c00', '#00cc6a']
+
 const DEFAULT_COLORS = ['#0078d7', '#00b7c3', '#8764b8']
 
 function defaultStyle() {
@@ -21,13 +24,14 @@ function cloneStyles(src) {
     const s = src?.[id] || defaultStyle()
     out[id] = {
       fill: { ...defaultStyle().fill, ...(s.fill || {}) },
-      border: { ...defaultStyle().border, ...(s.border || {}) }
+      border: { ...defaultStyle().border, ...(s.border || {}) },
+      saturation: Number.isFinite(s.saturation) ? s.saturation : 100
     }
   }
   return out
 }
 
-/** 设置 → 样式：窗口大小 + 每个按钮独立样式（仅模式切换，颜色使用默认值），独立保存 */
+/** 设置 → 样式：窗口大小 + 每个按钮独立样式（单色/Rainbow、调色板、饱和度），独立保存 */
 export function StyleTab({ globalCfg, onSaved, showToast, showError }) {
   const [styles, setStyles] = useState(() => cloneStyles(globalCfg?.ui?.buttonStyles))
   const [target, setTarget] = useState('promo')
@@ -46,8 +50,8 @@ export function StyleTab({ globalCfg, onSaved, showToast, showError }) {
   const current = styles[target]
   const preview = footerButtonStyle(current)
 
-  const setMode = (which, mode) => {
-    setStyles((s) => ({ ...s, [target]: { ...s[target], [which]: { ...s[target][which], mode } } }))
+  const setChoice = (which, value) => {
+    setStyles((s) => ({ ...s, [target]: { ...s[target], [which]: value } }))
   }
   const setSaturation = (value) => {
     setStyles((s) => ({ ...s, [target]: { ...s[target], saturation: value } }))
@@ -122,10 +126,10 @@ export function StyleTab({ globalCfg, onSaved, showToast, showError }) {
           </select>
 
           <label>{T.styleTab.fill}</label>
-          <ModeChoice value={current.fill.mode} onChange={(m) => setMode('fill', m)} />
+          <ColorChoice value={current.fill} onChange={(v) => setChoice('fill', v)} />
 
           <label>{T.styleTab.border}</label>
-          <ModeChoice value={current.border.mode} onChange={(m) => setMode('border', m)} />
+          <ColorChoice value={current.border} onChange={(v) => setChoice('border', v)} />
 
           <label>{T.styleTab.saturation}</label>
           <div className="inline-row">
@@ -157,18 +161,79 @@ export function StyleTab({ globalCfg, onSaved, showToast, showError }) {
   )
 }
 
-/** Solid / Rainbow 模式切换（颜色使用默认值，不提供调色板） */
-function ModeChoice({ value, onChange }) {
+/** 单色 / Rainbow 切换 + 调色板（仅调色板，无系统取色器） */
+function ColorChoice({ value, onChange }) {
+  const rainbow = value?.mode === 'rainbow'
+  const colors = value?.colors || []
+  const [slot, setSlot] = useState(0)
+
   return (
-    <div className="mode-row">
-      <label className="mode-item">
-        <input type="radio" checked={value !== 'rainbow'} onChange={() => onChange('solid')} />
-        {T.styleTab.solid}
-      </label>
-      <label className="mode-item">
-        <input type="radio" checked={value === 'rainbow'} onChange={() => onChange('rainbow')} />
-        {T.styleTab.rainbow}
-      </label>
+    <div className="color-choice">
+      <div className="mode-row">
+        <label className="mode-item">
+          <input type="radio" checked={!rainbow} onChange={() => onChange({ ...value, mode: 'solid' })} />
+          {T.styleTab.solid}
+        </label>
+        <label className="mode-item">
+          <input type="radio" checked={rainbow} onChange={() => onChange({ ...value, mode: 'rainbow' })} />
+          {T.styleTab.rainbow}
+        </label>
+      </div>
+
+      {!rainbow ? (
+        <div className="palette-row">
+          {PALETTE.map((c) => (
+            <button
+              key={c}
+              className={`palette-swatch${value?.color?.toLowerCase() === c.toLowerCase() ? ' selected' : ''}`}
+              style={{ background: c }}
+              onClick={() => onChange({ ...value, color: c })}
+              title={c}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="rainbow-colors">
+          <div className="swatch-row">
+            {colors.map((c, i) => (
+              <span key={i} className="swatch-wrap">
+                <button
+                  className={`palette-swatch${slot === i ? ' selected' : ''}`}
+                  style={{ background: c }}
+                  onClick={() => setSlot(i)}
+                  title={c}
+                />
+                {colors.length > 2 && (
+                  <button
+                    className="swatch-del"
+                    title={T.styleTab.remove}
+                    onClick={() => {
+                      onChange({ ...value, colors: colors.filter((_, j) => j !== i) })
+                      setSlot(0)
+                    }}
+                  >×</button>
+                )}
+              </span>
+            ))}
+            <button className="btn mini" onClick={() => {
+              const next = [...colors, '#0078d7']
+              onChange({ ...value, colors: next })
+              setSlot(next.length - 1)
+            }}>{T.styleTab.addColor}</button>
+          </div>
+          <div className="palette-row">
+            {PALETTE.map((c) => (
+              <button
+                key={c}
+                className="palette-swatch"
+                style={{ background: c }}
+                onClick={() => onChange({ ...value, colors: colors.map((x, j) => (j === slot ? c : x)) })}
+              />
+            ))}
+          </div>
+          <div className="hint-text">{T.styleTab.colorHint}</div>
+        </div>
+      )}
     </div>
   )
 }

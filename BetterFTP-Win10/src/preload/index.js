@@ -42,7 +42,6 @@ const api = {
   saveQuotes: invoke('toolbox:saveQuotes'),
   saveNames: invoke('toolbox:saveNames'),
   saveFortunes: invoke('toolbox:saveFortunes'),
-  openAiWindow: invoke('ai:openWindow'),
 
   // 配置
   configGet: invoke('config:get'),

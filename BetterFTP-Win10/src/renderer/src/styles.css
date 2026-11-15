@@ -793,3 +793,10 @@ body { background: #e8f2fa !important; }
 /* Rainbow：横向流动渐变（替换旧的旋转渐变） */
 @keyframes bf-flow { to { background-position: 200% 0; } }
 .bf-rainbow { animation: bf-flow 6s linear infinite; }
+
+/* 底部按钮点击蓝色（优先级需高于悬停规则） */
+.sidebar-footer .btn:active:not(:disabled) {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #fff !important;
+}

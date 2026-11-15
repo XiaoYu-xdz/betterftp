@@ -549,7 +549,6 @@ export default function App() {
           data={toolbox}
           brandName={brandName}
           onChangeName={changeName}
-          onOpenAi={() => { api().openAiWindow().catch(() => {}) }}
           onBack={() => setView('main')}
         />
       ) : view === 'editQuotes' ? (

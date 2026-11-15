@@ -14,7 +14,7 @@ const FALLBACK_FORTUNES = {
  * 百宝箱（PCL 风格）：每个工具单独一行，点击就地展开。
  * 今日人品：横向 6×9 名字网格（54 人），选中即显示结果（同人同日固定）。
  */
-export function TreasureBox({ data, brandName, onChangeName, onOpenAi, onBack }) {
+export function TreasureBox({ data, brandName, onChangeName, onBack }) {
   const [tool, setTool] = useState(null)   // null | 'fortune' | 'echo'
   const [picked, setPicked] = useState('')
   const [quoteIdx, setQuoteIdx] = useState(0)
@@ -32,7 +32,6 @@ export function TreasureBox({ data, brandName, onChangeName, onOpenAi, onBack })
   }
 
   const onRow = (id) => {
-    if (id === 'ai') { onOpenAi(); return }
     if (id === 'change') { onChangeName(); return }
     setTool((cur) => (cur === id ? null : id))
   }
@@ -95,11 +94,6 @@ export function TreasureBox({ data, brandName, onChangeName, onOpenAi, onBack })
               </div>
             </div>
           )}
-
-          <button className="tool-row" onClick={() => onRow('ai')}>
-            <span>{T.toolbox.ai}</span>
-            <span className="tool-row-arrow">↗</span>
-          </button>
 
           <button className="tool-row" onClick={() => onRow('change')}>
             <span>{T.toolbox.change}</span>

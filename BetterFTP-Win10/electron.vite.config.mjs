@@ -15,10 +15,7 @@ export default defineConfig({
     build: {
       outDir: 'out/renderer',
       rollupOptions: {
-        input: {
-          index: resolve('src/renderer/index.html'),
-          ai: resolve('src/renderer/ai.html')
-        }
+        input: resolve('src/renderer/index.html')
       }
     }
   }

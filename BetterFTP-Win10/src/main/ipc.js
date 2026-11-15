@@ -204,35 +204,6 @@ export function registerIpc(ctx) {
     return { count: list.length }
   })
 
-  // ---------- AI 独立窗口（内容开发中） ----------
-  let aiWindow = null
-  register('ai:openWindow', () => {
-    if (aiWindow && !aiWindow.isDestroyed()) {
-      aiWindow.show()
-      aiWindow.focus()
-      return {}
-    }
-    aiWindow = new BrowserWindow({
-      width: 760,
-      height: 520,
-      minWidth: 560,
-      minHeight: 400,
-      title: 'AI',
-      autoHideMenuBar: true,
-      icon: path.join(appRootPath(), 'build', 'icon.ico'),
-      parent: ctx.getWindow() || undefined,
-      webPreferences: {
-        preload: path.join(appRootPath(), 'out/preload/index.js'),
-        contextIsolation: true,
-        nodeIntegration: false,
-        sandbox: false
-      }
-    })
-    aiWindow.loadFile(path.join(appRootPath(), 'out/renderer/ai.html'))
-    aiWindow.on('closed', () => { aiWindow = null })
-    return {}
-  })
-
   // ---------- 开机自启（打包版有效；自启时带 --hidden 后台隐藏） ----------
   const AUTO_ARGS = ['--hidden']
   register('app:getLoginItem', () => {
