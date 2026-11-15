@@ -49,7 +49,14 @@ export function defaultConfig() {
       passive: true,
       maxConcurrentTransfers: 2,
       downloadDir: 'desktop',      // 'desktop' 或绝对路径
-      window: { width: null, height: null, maximized: false } // 上次窗口状态（null=自动适配屏幕）
+      window: { width: null, height: null, maximized: false }, // 上次窗口状态（null=自动适配屏幕）
+      ui: {
+        // 底部四个按钮（宣传片/百宝箱/关于/设置）的样式：填充与外框各自可设单色/彩虹
+        footerStyle: {
+          fill: { mode: 'solid', color: '#fdfdfd', colors: ['#0078d7', '#00b7c3', '#8764b8'] },
+          border: { mode: 'solid', color: '#adadad', colors: ['#0078d7', '#00b7c3', '#8764b8'] }
+        }
+      }
     },
     accounts: []
   }
@@ -111,6 +118,7 @@ export function migrate(cfg) {
       out.global.server.port = maybePort
     }
   }
+  out.global.ui = normalizeUi(cfg.global?.ui)
   // 窗口状态：宽高必须是正数或 null（自动适配屏幕），maximized 布尔
   {
     const w = cfg.global?.window || {}
@@ -148,6 +156,30 @@ export function migrate(cfg) {
 }
 
 /** 按 order 排序返回账号列表（渲染层展示顺序） */
+const HEX = /^#[0-9A-Fa-f]{6}$/
+
+function normalizeChoice(choice, fallback) {
+  const c = choice || {}
+  return {
+    mode: c.mode === 'rainbow' ? 'rainbow' : 'solid',
+    color: HEX.test(c.color || '') ? c.color : fallback.color,
+    colors: Array.isArray(c.colors) && c.colors.filter((x) => HEX.test(x)).length >= 2
+      ? c.colors.filter((x) => HEX.test(x)).slice(0, 12)
+      : [...fallback.colors]
+  }
+}
+
+export function normalizeUi(ui) {
+  const def = defaultConfig().global.ui.footerStyle
+  const src = ui?.footerStyle || {}
+  return {
+    footerStyle: {
+      fill: normalizeChoice(src.fill, def.fill),
+      border: normalizeChoice(src.border, def.border)
+    }
+  }
+}
+
 export function sortAccounts(accounts) {
   return [...accounts].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 }

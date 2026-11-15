@@ -3,12 +3,12 @@ import logoUrl from '../assets/logo.png'
 import { T } from '../texts.js'
 
 /** 左侧账号列表（竖栏卡片 + 底部设置按钮） */
-export function AccountSidebar({ accounts, connStates, activeId, onSelect, onAdd, onOpenSettings, onOpenAbout }) {
+export function AccountSidebar({ accounts, connStates, activeId, onSelect, onAdd, onOpenSettings, onOpenAbout, onOpenToolbox, onOpenPromo, brandName, footerStyle }) {
   return (
     <aside className="sidebar">
       <div className="brand">
         <div className="logo"><img className="logo-img" src={logoUrl} alt="" draggable={false} /></div>
-        <div>{T.side.title}{T.side.subtitle && <small>{T.side.subtitle}</small>}</div>
+        <div>{brandName || T.side.title}{T.side.subtitle && <small>{T.side.subtitle}</small>}</div>
       </div>
 
       {accounts.map((a) => {
@@ -38,8 +38,10 @@ export function AccountSidebar({ accounts, connStates, activeId, onSelect, onAdd
       <button className="add-account" onClick={onAdd}>{T.side.add}</button>
 
       <div className="sidebar-footer">
-        <button className="btn settings-btn" onClick={onOpenAbout}>{T.side.about}</button>
-        <button className="btn settings-btn" onClick={onOpenSettings}>{T.side.settings}</button>
+        <button className={`btn settings-btn ${footerStyle?.className || ''}`} style={footerStyle?.style} onClick={onOpenPromo}>{T.side.promo}</button>
+        <button className={`btn settings-btn ${footerStyle?.className || ''}`} style={footerStyle?.style} onClick={onOpenToolbox}>{T.side.toolbox}</button>
+        <button className={`btn settings-btn ${footerStyle?.className || ''}`} style={footerStyle?.style} onClick={onOpenAbout}>{T.side.about}</button>
+        <button className={`btn settings-btn ${footerStyle?.className || ''}`} style={footerStyle?.style} onClick={onOpenSettings}>{T.side.settings}</button>
       </div>
     </aside>
   )

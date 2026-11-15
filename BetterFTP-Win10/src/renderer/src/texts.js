@@ -20,6 +20,8 @@ export const T = {
     subtitle: '', // 品牌副标题；想显示可填回 '课件传输'
     add: '＋ 添加账号',
     noAccountsHint: '还没有老师账号。点下方「添加账号」创建第一个。',
+    promo: '🎬 宣传片',
+    toolbox: '🧰 百宝箱',
     about: 'ⓘ 关于',
     settings: '⚙ 设置',
   },
@@ -369,6 +371,79 @@ export const T = {
     contactLabel: '联系人',
   },
 
+
+  // ── 顶部命令栏 ────────────────────────────────────────
+  command: {
+    placeholder: '输入命令…（试试 zcode）',
+    noMatch: '没有匹配的命令',
+    editQuotes: '更改老师经典语录',
+    editQuotesHint: '编辑百宝箱里展示的语录',
+    editNames: '更改变化的软件名',
+    editNamesHint: '编辑「变化的软件名」的名字列表'
+  },
+
+  // ── 百宝箱 ────────────────────────────────────────────
+  toolbox: {
+    title: '百宝箱',
+    back: '← 返回',
+    fortune: '今日人品',
+    fortuneDesc: '选自己的名字，看看今天的人品',
+    quotes: '老师经典语录',
+    quotesDesc: '仅供娱乐，课间放松一下',
+    ai: 'AI',
+    aiDesc: '智能助手（开发中）',
+    nameChanger: '变化的软件名',
+    nameChangerDesc: '点一下，给软件换个名字',
+    todayIs: (d) => '今天 ' + d,
+    pickName: '选择你的名字：',
+    fortuneResult: (name) => name + ' 今日人品',
+    fortunes: {
+      great: '爆表！今天干什么都顺',
+      good: '不错，适合举手发言',
+      normal: '平平淡淡才是真',
+      low: '建议今天低调一点',
+      bad: '今天适合安静刷题'
+    },
+    fortuneStable: '同一人同一天结果固定，明天再来看看',
+    changeQuote: '换一条',
+    quoteCount: (n) => '共 ' + n + ' 条语录',
+    noQuotes: '还没有语录，按 zcode 命令添加',
+    noNames: '请先在程序旁的 data\\学生名单.txt 里填入学生姓名'
+  },
+
+  // ── zcode 编辑页 ──────────────────────────────────────
+  editQuotes: {
+    title: '更改老师经典语录',
+    add: '＋ 添加一条',
+    save: '保存',
+    saved: '语录已保存',
+    empty: '还没有语录，点下方添加',
+    placeholder: '输入一条语录…'
+  },
+  editNames: {
+    title: '更改变化的软件名',
+    add: '＋ 添加一个名字',
+    save: '保存',
+    saved: '名字列表已保存',
+    empty: '还没有名字',
+    needOne: '至少保留一个名字',
+    placeholder: '输入一个名字…',
+    hint: '第一个是默认名字；在百宝箱里点击「变化的软件名」可循环切换'
+  },
+
+  // ── 底部按钮样式 ──────────────────────────────────────
+  footerStyle: {
+    title: '底部按钮样式',
+    fill: '填充',
+    border: '外框',
+    solid: '单色',
+    rainbow: 'Rainbow（动态渐变）',
+    colors: '渐变颜色',
+    addColor: '＋ 添加颜色',
+    custom: '自定义颜色',
+    preview: '预览',
+    saveHint: '修改后点「保存全局设置」生效'
+  },
 
   // ── 操作类型中文名（日志页用） ────────────────────────
   logActions: {

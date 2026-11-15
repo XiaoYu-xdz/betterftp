@@ -3,6 +3,10 @@ import { AccountSidebar } from './components/AccountSidebar.jsx'
 import { TransferDock } from './components/TransferDock.jsx'
 import { SettingsPage } from './components/SettingsPage.jsx'
 import { AboutPage } from './components/AboutDialog.jsx'
+import { CommandBar } from './components/CommandBar.jsx'
+import { TreasureBox } from './pages/TreasureBox.jsx'
+import { EditQuotes, EditNames } from './pages/EditPages.jsx'
+import { footerButtonStyle } from './footer-style.js'
 import { ConfirmDialog, PromptDialog, ConflictDialog, ErrorDialog, ErrorPanel } from './components/dialogs.jsx'
 import { fmtSize, fmtTime, fileIcon, containerFolderName } from './utils.js'
 import { T } from './texts.js'
@@ -24,6 +28,9 @@ export default function App() {
   const [paths, setPaths] = useState(null)
   const [appVersion, setAppVersion] = useState('')
   const [showAbout, setShowAbout] = useState(false)
+  const [brandName, setBrandName] = useState('BetterFTP')
+  const [toolbox, setToolbox] = useState({ students: [], quotes: [], names: [] })
+  const [nameIdx, setNameIdx] = useState(0)
   // showAbout 为 true 时整页切换到关于页（主界面内嵌，非弹窗）
   const [view, setView] = useState('main')
   const [settingsTab, setSettingsTab] = useState('global')
@@ -67,6 +74,11 @@ export default function App() {
         setGlobalCfg(info.cfg.global)
         setPaths(info.paths)
         setAppVersion(info.appVersion || '')
+        try {
+          const tb = await api().toolboxGetData()
+          setToolbox(tb)
+          if (Array.isArray(tb.names) && tb.names.length > 0) setBrandName(tb.names[0])
+        } catch { /* 百宝箱数据不可用时不阻塞启动 */ }
       } catch (e) {
         showError({ title: T.dialog.errorTitle, hint: e?.hint || String(e?.message || e), action: null })
       }
@@ -109,6 +121,9 @@ export default function App() {
 
   const activeConn = conns[activeId]
   const activeAccount = accounts.find((a) => a.id === activeId)
+
+  // 软件名变化时同步窗口标题（document.title 即 Electron 窗口标题）
+  useEffect(() => { document.title = brandName }, [brandName])
 
   // ---------- 连接与浏览 ----------
   const setConn = (id, patch) => setConns((c) => ({ ...c, [id]: { ...c[id], ...patch } }))
@@ -465,11 +480,28 @@ export default function App() {
   }
 
   const goSettings = (tab = 'global') => { setSettingsTab(tab); setView('settings') }
+  const footerBtns = footerButtonStyle(globalCfg?.ui?.footerStyle)
+  const changeName = () => {
+    const list = Array.isArray(toolbox.names) && toolbox.names.length > 0 ? toolbox.names : [brandName]
+    const next = (nameIdx + 1) % list.length
+    setNameIdx(next)
+    setBrandName(list[next])
+  }
+  const saveQuotes = async (list) => {
+    await api().saveQuotes({ quotes: list })
+    setToolbox((t) => ({ ...t, quotes: list }))
+  }
+  const saveNames = async (list) => {
+    await api().saveNames({ names: list })
+    setToolbox((t) => ({ ...t, names: list }))
+  }
   const connected = activeConn?.status === 'connected'
   const listable = connected && perms !== 'w' && perms !== 'none'
 
   return (
-    <div className="app">
+    <div className="app-shell">
+      <CommandBar onRun={(id) => { if (id === 'editQuotes' || id === 'editNames') setView(id) }} />
+      <div className="app">
       <AccountSidebar
         accounts={accounts}
         connStates={conns}
@@ -478,6 +510,10 @@ export default function App() {
         onAdd={() => goSettings('accounts')}
         onOpenSettings={() => goSettings('global')}
         onOpenAbout={() => { setShowAbout(true); setView('about') }}
+        onOpenToolbox={() => setView('toolbox')}
+        onOpenPromo={() => { /* 宣传片制作中：点击暂无反应 */ }}
+        brandName={brandName}
+        footerStyle={footerBtns}
       />
 
       {view === 'settings' ? (
@@ -496,6 +532,30 @@ export default function App() {
         />
       ) : view === 'about' ? (
         <AboutPage version={appVersion} onBack={() => { setShowAbout(false); setView('main') }} />
+      ) : view === 'toolbox' ? (
+        <TreasureBox
+          data={toolbox}
+          brandName={brandName}
+          onChangeName={changeName}
+          onOpenAi={() => { api().openAiWindow().catch(() => {}) }}
+          onBack={() => setView('main')}
+        />
+      ) : view === 'editQuotes' ? (
+        <EditQuotes
+          quotes={toolbox.quotes}
+          onSave={saveQuotes}
+          onBack={() => setView('toolbox')}
+          showToast={showToast}
+          showError={showError}
+        />
+      ) : view === 'editNames' ? (
+        <EditNames
+          names={toolbox.names}
+          onSave={saveNames}
+          onBack={() => setView('toolbox')}
+          showToast={showToast}
+          showError={showError}
+        />
       ) : (
         <div className="main">
           {/* 顶栏（两行：状态行 + 路径行） */}
@@ -596,6 +656,7 @@ export default function App() {
       <ErrorDialog spec={errorSpec} onResult={() => { setErrorSpec(null); errorResolve.current?.() }} onGoSettings={() => goSettings('accounts')} />
 
       {toast && <div className={`toast ${toast.type === 'error' ? 'error' : ''}`}>{toast.text}</div>}
+      </div>
     </div>
   )
 }

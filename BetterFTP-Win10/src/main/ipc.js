@@ -93,6 +93,96 @@ export function registerIpc(ctx) {
     return size
   })
 
+  // ---------- 百宝箱：学生名单 / 经典语录 / 软件名 ----------
+  const appRootPath = () => (app.isPackaged ? app.getAppPath() : path.resolve(__dirname, '../..'))
+  const studentsFile = path.join(dataDir, '学生名单.txt')
+  const quotesFile = path.join(dataDir, '经典语录.json')
+  const namesFile = path.join(dataDir, '软件名.json')
+
+  const DEFAULT_STUDENTS = Array.from({ length: 54 }, (_, i) => '同学' + String(i + 1).padStart(2, '0'))
+  const DEFAULT_QUOTES = [
+    '这道题我讲过八百遍了，还有人错？',
+    '你们是我带过最差的一届——每一届我都这么说。',
+    '再讲两分钟就下课。',
+    '看我干什么？我脸上有答案吗？',
+    '下课铃是给老师听的，不是给你们听的。'
+  ]
+  const DEFAULT_NAMES = ['BetterFTP', '课件传送门', '课件搬运工', '班级文件管家', '作业运输机']
+
+  function readJsonOrInit(file, def) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(file, 'utf8'))
+      if (Array.isArray(parsed) && parsed.every((x) => typeof x === 'string')) return parsed
+    } catch { /* 文件不存在或损坏 */ }
+    try {
+      fs.mkdirSync(dataDir, { recursive: true })
+      fs.writeFileSync(file, JSON.stringify(def, null, 2), 'utf8')
+    } catch { /* ignore */ }
+    return [...def]
+  }
+
+  function readStudents() {
+    try {
+      const text = fs.readFileSync(studentsFile, 'utf8')
+      const names = text.split(/\r?\n/).map((x) => x.trim()).filter(Boolean)
+      if (names.length > 0) return names.slice(0, 120)
+    } catch { /* 不存在 */ }
+    try {
+      fs.mkdirSync(dataDir, { recursive: true })
+      fs.writeFileSync(studentsFile, DEFAULT_STUDENTS.join('\r\n'), 'utf8')
+    } catch { /* ignore */ }
+    return [...DEFAULT_STUDENTS]
+  }
+
+  register('toolbox:getData', () => ({
+    students: readStudents(),
+    quotes: readJsonOrInit(quotesFile, DEFAULT_QUOTES),
+    names: readJsonOrInit(namesFile, DEFAULT_NAMES)
+  }))
+
+  register('toolbox:saveQuotes', ({ quotes }) => {
+    const list = (Array.isArray(quotes) ? quotes : [])
+      .map((x) => String(x).trim()).filter(Boolean).slice(0, 300).map((x) => x.slice(0, 500))
+    fs.writeFileSync(quotesFile, JSON.stringify(list, null, 2), 'utf8')
+    return { count: list.length }
+  })
+
+  register('toolbox:saveNames', ({ names }) => {
+    const list = (Array.isArray(names) ? names : [])
+      .map((x) => String(x).trim()).filter(Boolean).slice(0, 60).map((x) => x.slice(0, 80))
+    fs.writeFileSync(namesFile, JSON.stringify(list, null, 2), 'utf8')
+    return { count: list.length }
+  })
+
+  // ---------- AI 独立窗口（内容开发中） ----------
+  let aiWindow = null
+  register('ai:openWindow', () => {
+    if (aiWindow && !aiWindow.isDestroyed()) {
+      aiWindow.show()
+      aiWindow.focus()
+      return {}
+    }
+    aiWindow = new BrowserWindow({
+      width: 760,
+      height: 520,
+      minWidth: 560,
+      minHeight: 400,
+      title: 'AI',
+      autoHideMenuBar: true,
+      icon: path.join(appRootPath(), 'build', 'icon.ico'),
+      parent: ctx.getWindow() || undefined,
+      webPreferences: {
+        preload: path.join(appRootPath(), 'out/preload/index.js'),
+        contextIsolation: true,
+        nodeIntegration: false,
+        sandbox: false
+      }
+    })
+    aiWindow.loadFile(path.join(appRootPath(), 'out/renderer/ai.html'))
+    aiWindow.on('closed', () => { aiWindow = null })
+    return {}
+  })
+
   // ---------- 开机自启（打包版有效；自启时带 --hidden 后台隐藏） ----------
   const AUTO_ARGS = ['--hidden']
   register('app:getLoginItem', () => {

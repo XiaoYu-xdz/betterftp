@@ -32,6 +32,12 @@ const api = {
   windowInfo: invoke('window:info'),
   applyWindowSize: invoke('window:applySize'),
 
+  // 百宝箱
+  toolboxGetData: invoke('toolbox:getData'),
+  saveQuotes: invoke('toolbox:saveQuotes'),
+  saveNames: invoke('toolbox:saveNames'),
+  openAiWindow: invoke('ai:openWindow'),
+
   // 配置
   configGet: invoke('config:get'),
   saveGlobal: invoke('config:saveGlobal'),
